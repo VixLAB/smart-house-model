@@ -1,5 +1,5 @@
 import { db, withTimeout } from "@/lib/firebaseAdmin";
-import { DEVICES, DeviceError, deviceState, resolveAction, validateAction } from "@/lib/devices";
+import { DeviceError, deviceState, getDevice, resolveAction, validateAction } from "@/lib/devices";
 import { CORS, checkKey, json } from "@/lib/apiAuth";
 
 export const dynamic = "force-dynamic";
@@ -21,10 +21,9 @@ export async function GET(req, { params }) {
   if (denied) return denied;
   try {
     const { id } = await params;
-    if (!DEVICES[id]) throw new DeviceError(404, `Không có thiết bị "${id}".`);
+    const d = getDevice(id);
     const home = await readHome();
-    const d = DEVICES[id];
-    return json({ ok: true, id, label: d?.label, state: deviceState(home, id) });
+    return json({ ok: true, id, label: d.label, state: deviceState(home, id) });
   } catch (e) {
     return fail(e);
   }

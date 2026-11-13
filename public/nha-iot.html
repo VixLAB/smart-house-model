@@ -103,6 +103,7 @@ details .form-grid{margin-top:10px}
 .lamp{width:12px;height:12px;border-radius:50%;flex:none;border:2px solid var(--muted);background:transparent;transition:all .25s}
 .state{margin:0;font-weight:600;font-size:.88rem}
 .hint{margin:0;color:var(--muted);font-size:.78rem}
+.sim-tag{margin-left:auto;flex:none;padding:1px 7px;border-radius:999px;border:1px dashed var(--muted);color:var(--muted);font-size:.68rem;font-weight:600}
 .ctrl{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:4px}
 .ctrl:empty{display:none}
 .path{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);overflow-wrap:anywhere}
@@ -308,7 +309,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
     <section class="model-card" aria-labelledby="m-title">
       <div class="model-head">
         <h2 id="m-title">Mô hình 3D</h2>
-        <p>Dựng theo ảnh mô hình mica, kích thước ước lượng. Kéo để xoay, cuộn để phóng to. Bấm vào thiết bị hoặc nhãn để điều khiển, bấm vào sàn một phòng để mở bảng của phòng đó.</p>
+        <p>Dựng theo ảnh mô hình mica, kích thước ước lượng. Kéo để xoay, cuộn để phóng to. Bấm vào thiết bị hoặc nhãn để điều khiển, bấm vào sàn một phòng để mở bảng của phòng đó. Thiết bị ghi “giả lập” chỉ có khi mô phỏng.</p>
       </div>
       <div class="model" id="model">
         <canvas id="model-canvas" aria-label="Mô hình 3D ngôi nhà 3 tầng"></canvas>
@@ -351,7 +352,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
     <aside>
       <section class="card">
         <h2>Nhiệt độ và độ ẩm</h2>
-        <p class="sub">DHT11 ở tầng 1, gửi lên mỗi 2 giây</p>
+        <p class="sub">DHT11 ở nhà xe, tầng 1</p>
         <div class="readings">
           <div class="reading"><small>Nhiệt độ</small><strong id="r-temp">—<em>°C</em></strong></div>
           <div class="reading"><small>Độ ẩm</small><strong id="r-humi">—<em>%</em></strong></div>
@@ -368,7 +369,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
           <button class="btn" type="button" data-sim="finger">Quét đúng vân tay tầng 3</button>
           <button class="btn" type="button" data-sim="wc1">Có người vào WC 1</button>
           <button class="btn" type="button" data-sim="wc2">Có người vào WC 2</button>
-          <button class="btn" type="button" data-sim="pir">Có chuyển động tầng 1</button>
+          <button class="btn" type="button" data-sim="pir">Có chuyển động ở nhà xe</button>
           <button class="btn" type="button" data-sim="smoke">Tạo khói tầng 2</button>
         </div>
       </section>
@@ -429,7 +430,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
 
   <section class="card api-card" aria-labelledby="api-title">
     <h2 id="api-title">API thiết bị</h2>
-    <p class="sub">Project Next.js trả lời các route dưới đây. Gửi khóa trong header <code>x-api-key</code> nếu đã đặt <code>SMART_HOME_API_KEY</code>.</p>
+    <p class="sub">Project Next.js trả lời các route dưới đây. Gửi khóa trong header <code>x-api-key</code> nếu đã đặt <code>SMART_HOME_API_KEY</code>. Cửa cuốn, đèn WC và đèn tầng 3 chỉ có khi mô phỏng nên không có trong API.</p>
     <div class="api-routes">
       <code>GET /api/devices</code><span>Toàn bộ nhánh /home và trạng thái từng thiết bị</span>
       <code>GET /api/devices/{id}</code><span>Trạng thái một thiết bị</span>
@@ -438,7 +439,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
     <div class="table-wrap"><table class="api-table"><thead><tr><th>id</th><th>Tầng</th><th>Thiết bị</th><th>Lệnh</th><th>Đường dẫn Firebase</th></tr></thead><tbody id="api-rows"></tbody></table></div>
   </section>
 
-  <p class="foot">Mỗi ô ghi đường dẫn Firebase nó đọc/ghi, khớp với firmware trong thư mục CODE: <code>cua_chinh</code>, <code>nha_xe_moi_nhat</code>, <code>den_wc</code>, <code>bao_trom_va_do_am</code>, <code>baochay_denl2</code>, <code>van_tay</code>. Thang máy chạy Arduino Uno riêng, không nối mạng nên không có trên trang.</p>
+  <p class="foot">Mỗi ô ghi đường dẫn Firebase nó đọc/ghi, khớp với firmware trong thư mục CODE: <code>cua_chinh</code>, <code>bao_trom_va_do_am</code>, <code>baochay_denl2</code>, <code>van_tay</code>. Cửa cuốn (<code>nha_xe_moi_nhat</code>), đèn WC (<code>den_wc</code>) và đèn tầng 3 chỉ có khi mô phỏng: nhà thật không lắp nên khi nối mạch thật, trên API và app điện thoại không có chúng. Thang máy chạy Arduino UNO riêng, không nối mạng, trên trang chỉ mô phỏng.</p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
@@ -466,23 +467,27 @@ const DEFAULT_CFG = {
 // Danh mục thiết bị của ngôi nhà và cách đọc/ghi chúng trên Firebase Realtime Database.
 // Đường dẫn tính từ nhánh /home, khớp đúng với firmware trong thư mục CODE.
 // File này không phụ thuộc Next.js hay Firebase nên dùng được ở cả server lẫn trình duyệt.
+//
+// Thiết bị có `sim: true` chỉ có trong chế độ mô phỏng của trang web: nhà mô hình thật không lắp
+// chúng (theo sơ đồ phần cứng), nên API, app điện thoại và điều khiển bằng giọng nói bỏ qua.
 
 const API_DEVICES = {
-  light1: { floor: 1, kind: 'light', label: 'Đèn tầng 1', path: 'floor_1/light_room_1', invert: true, source: 'cua_chinh.ino' },
+  fan1:   { floor: 1, kind: 'fan', label: 'Quạt tầng 1', path: 'floor_1/light_room_1', invert: true, source: 'cua_chinh.ino' },
   door1:  { floor: 1, kind: 'door', label: 'Cửa chính', path: 'floor_1/door_opened_1', readOnly: 'Cửa chính chỉ mở bằng bàn phím mật khẩu tại mạch.', source: 'cua_chinh.ino' },
-  garage: { floor: 1, kind: 'garage', label: 'Cửa cuốn nhà xe', path: 'floor_1/garage/status', cmd: 'floor_1/garage/command', source: 'nha_xe_moi_nhat.ino' },
-  wc1:    { floor: 1, kind: 'auto', label: 'Đèn WC 1', path: 'floor_1/wc1_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', source: 'den_wc.ino' },
-  wc2:    { floor: 1, kind: 'auto', label: 'Đèn WC 2', path: 'floor_1/wc2_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', source: 'den_wc.ino' },
-  alarm:  { floor: 1, kind: 'alarm', label: 'Báo trộm (PIR)', path: 'floor_1/alarm_enabled_1', trig: 'floor_1/alarm_triggered_1', source: 'bao_trom_va_do_am.ino' },
+  alarm:  { floor: 1, kind: 'alarm', label: 'Báo trộm nhà xe (PIR)', path: 'floor_1/alarm_enabled_1', trig: 'floor_1/alarm_triggered_1', source: 'bao_trom_va_do_am.ino' },
   climate:{ floor: 1, kind: 'sensor', label: 'Nhiệt độ, độ ẩm (DHT11)', path: 'floor_1/temperature_1', humidity: 'floor_1/humidity_1', readOnly: 'Cảm biến chỉ đọc.', source: 'bao_trom_va_do_am.ino' },
-  light2: { floor: 2, kind: 'light', label: 'Đèn tầng 2', path: 'floor_2/light_room_2', source: 'baochay_denl2.ino' },
-  smoke:  { floor: 2, kind: 'smoke', label: 'Báo khói', path: 'floor_2/smoke_level_2', detected: 'floor_2/smoke_detected_2', mute: 'floor_2/buzzer_mute_2', threshold: 120, source: 'baochay_denl2.ino' },
-  light3: { floor: 3, kind: 'light', label: 'Đèn tầng 3', path: 'light_room_3', source: 'van_tay.ino' },
-  door3:  { floor: 3, kind: 'door', label: 'Cửa vân tay', path: 'door_status', readOnly: 'Cửa tầng 3 chỉ mở bằng vân tay tại mạch.', source: 'van_tay.ino' },
+  light2: { floor: 2, kind: 'light', label: 'Đèn LED tầng 2', path: 'floor_2/light_room_2', source: 'baochay_denl2.ino' },
+  smoke:  { floor: 2, kind: 'smoke', label: 'Báo cháy (MQ-2)', path: 'floor_2/smoke_level_2', detected: 'floor_2/smoke_detected_2', mute: 'floor_2/buzzer_mute_2', threshold: 120, source: 'baochay_denl2.ino' },
+  door3:  { floor: 3, kind: 'door', label: 'Khóa cửa vân tay', path: 'door_status', readOnly: 'Cửa tầng 3 chỉ mở bằng vân tay tại mạch.', source: 'van_tay.ino' },
+  garage: { floor: 1, kind: 'garage', label: 'Cửa cuốn nhà xe', path: 'floor_1/garage/status', cmd: 'floor_1/garage/command', sim: true, source: 'nha_xe_moi_nhat.ino' },
+  wc1:    { floor: 1, kind: 'auto', label: 'Đèn WC 1', path: 'floor_1/wc1_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
+  wc2:    { floor: 1, kind: 'auto', label: 'Đèn WC 2', path: 'floor_1/wc2_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
+  light3: { floor: 3, kind: 'light', label: 'Đèn tầng 3', path: 'light_room_3', sim: true, source: 'van_tay.ino' },
 };
 
 const ACTIONS = {
   light: ['on', 'off', 'toggle'],
+  fan: ['on', 'off', 'toggle'],
   alarm: ['on', 'off', 'toggle'],
   smoke: ['mute', 'unmute', 'toggle'],
   garage: ['open', 'close', 'toggle'],
@@ -494,13 +499,21 @@ class DeviceError extends Error {
 
 const getPath = (obj, path) => path.split('/').reduce((a, k) => (a == null ? undefined : a[k]), obj);
 
+/** Thiết bị theo id. Thiết bị chỉ có khi mô phỏng thì coi như không có, trừ khi gọi với { sim: true }. */
+function getDevice(id, { sim = false } = {}) {
+  const d = API_DEVICES[id];
+  if (!d) throw new DeviceError(404, `Không có thiết bị "${id}".`);
+  if (d.sim && !sim) throw new DeviceError(404, `${d.label} chỉ có trong chế độ mô phỏng, nhà thật không lắp.`);
+  return d;
+}
+
 /** Trạng thái đã chuẩn hóa của một thiết bị, đọc từ nhánh /home. */
 function deviceState(home, id) {
   const d = API_DEVICES[id];
   if (!d) throw new DeviceError(404, `Không có thiết bị "${id}".`);
   const v = p => getPath(home || {}, p);
   switch (d.kind) {
-    case 'light': case 'auto': {
+    case 'light': case 'fan': case 'auto': {
       const raw = v(d.path);
       return { on: raw == null ? null : (d.invert ? !raw : !!raw) };
     }
@@ -516,28 +529,34 @@ function deviceState(home, id) {
   }
 }
 
-/** Danh sách mọi thiết bị kèm trạng thái, để trả về từ GET /api/devices. */
-function listDevices(home) {
-  return Object.entries(API_DEVICES).map(([id, d]) => ({
+/** Danh sách thiết bị kèm trạng thái, để trả về từ GET /api/devices. Mặc định bỏ thiết bị chỉ có khi mô phỏng. */
+function listDevices(home, { sim = false } = {}) {
+  return Object.entries(API_DEVICES).filter(([, d]) => sim || !d.sim).map(([id, d]) => ({
     id, floor: d.floor, kind: d.kind, label: d.label,
     actions: d.readOnly ? [] : (ACTIONS[d.kind] || []),
     readOnly: !!d.readOnly, state: deviceState(home, id),
   }));
 }
 
-/**
- * Đổi một lệnh (vd. "toggle") thành các giá trị cần ghi lên Firebase.
- * Trả về object { "<đường dẫn trong /home>": giá trị } để ghi bằng một lần update().
- */
-function resolveAction(home, id, action) {
-  const d = API_DEVICES[id];
-  if (!d) throw new DeviceError(404, `Không có thiết bị "${id}".`);
+/** Kiểm tra id và lệnh trước khi đọc Firebase. Ném DeviceError nếu không hợp lệ. */
+function validateAction(id, action, opts) {
+  const d = getDevice(id, opts);
   if (d.readOnly) throw new DeviceError(403, d.readOnly);
   const allowed = ACTIONS[d.kind] || [];
   if (!allowed.includes(action)) throw new DeviceError(400, `Lệnh "${action}" không hợp lệ cho ${d.label}. Dùng: ${allowed.join(', ')}.`);
+}
+
+/**
+ * Đổi một lệnh (vd. "toggle") thành các giá trị cần ghi lên Firebase.
+ * Trả về object { "<đường dẫn trong /home>": giá trị } để ghi bằng một lần update().
+ * Chỉ trang web ở chế độ mô phỏng gọi với { sim: true }.
+ */
+function resolveAction(home, id, action, opts) {
+  validateAction(id, action, opts);
+  const d = API_DEVICES[id];
   const st = deviceState(home, id);
   switch (d.kind) {
-    case 'light': {
+    case 'light': case 'fan': {
       const on = action === 'toggle' ? !(st.on === true) : action === 'on';
       return { [d.path]: d.invert ? !on : on };
     }
@@ -558,25 +577,28 @@ function resolveAction(home, id, action) {
 }
 
 /* ===== Thiết bị: đường dẫn tính từ /home, đúng như firmware ===== */
+// sim: chỉ có khi mô phỏng (lấy từ API_DEVICES), ẩn khi nối mạch thật
 const DEVICES = {
   3: [
-    { id:'light3', kind:'light', label:'Đèn tầng 3', path:'light_room_3' },
-    { id:'door3', kind:'door', label:'Cửa vân tay', path:'door_status', hint:'Tự mở 2 giây khi quét đúng vân tay' }
+    { id:'door3', kind:'door', label:'Khóa cửa vân tay', path:'door_status', hint:'Servo mở khóa 2 giây khi quét đúng vân tay' },
+    { id:'light3', kind:'light', label:'Đèn tầng 3', path:'light_room_3' }
   ],
   2: [
-    { id:'light2', kind:'light', label:'Đèn phòng tầng 2', path:'floor_2/light_room_2', hint:'Đồng bộ với nút nhấn tại phòng' },
-    { id:'smoke', kind:'smoke', label:'Báo khói', path:'floor_2/smoke_level_2', detected:'floor_2/smoke_detected_2', mute:'floor_2/buzzer_mute_2' }
+    { id:'light2', kind:'light', label:'Đèn LED tầng 2', path:'floor_2/light_room_2', hint:'Đồng bộ với nút nhấn tại phòng' },
+    { id:'smoke', kind:'smoke', label:'Báo cháy (MQ-2, còi)', path:'floor_2/smoke_level_2', detected:'floor_2/smoke_detected_2', mute:'floor_2/buzzer_mute_2' }
   ],
   1: [
-    { id:'light1', kind:'light', label:'Đèn tầng 1', path:'floor_1/light_room_1', invert:true, hint:'Firmware đảo logic: giá trị false là đèn sáng' },
-    { id:'door1', kind:'door', label:'Cửa chính', path:'floor_1/door_opened_1', hint:'Mở 3 giây khi nhập đúng mật khẩu bàn phím' },
+    { id:'fan1', kind:'fan', label:'Quạt tầng 1', path:'floor_1/light_room_1', invert:true, hint:'Relay trên mạch cửa chính, đảo logic: giá trị false là quạt chạy' },
+    { id:'door1', kind:'door', label:'Cửa chính', path:'floor_1/door_opened_1', hint:'Động cơ mở cửa 3 giây khi nhập đúng mật khẩu bàn phím 4x4' },
+    { id:'alarm', kind:'alarm', label:'Báo trộm nhà xe (PIR)', path:'floor_1/alarm_enabled_1', trig:'floor_1/alarm_triggered_1', hint:'Cảm biến hồng ngoại, còi và LCD 16x2 ở nhà xe' },
     { id:'garage', kind:'garage', label:'Cửa cuốn nhà xe', path:'floor_1/garage/status', cmd:'floor_1/garage/command' },
-    { id:'alarm', kind:'alarm', label:'Báo trộm (PIR)', path:'floor_1/alarm_enabled_1', trig:'floor_1/alarm_triggered_1' },
     { id:'wc1', kind:'auto', label:'Đèn WC 1', path:'floor_1/wc1_light', hint:'Cảm biến PIR, sáng 3 giây' },
     { id:'wc2', kind:'auto', label:'Đèn WC 2', path:'floor_1/wc2_light', hint:'Cảm biến PIR, sáng 3 giây' }
   ]
 };
 const ALL = [].concat(DEVICES[1], DEVICES[2], DEVICES[3]);
+ALL.forEach(d => d.sim = !!API_DEVICES[d.id].sim);
+const SIM_NOTE = 'Chỉ có khi mô phỏng, nhà thật không lắp';
 
 let backend = null;  // Sim hoặc Live
 let tree = {};       // bản sao nhánh /home
@@ -590,12 +612,12 @@ function buildTile(d){
   const el = document.createElement('article');
   el.className = 'tile'; el.id = 't-' + d.id;
   let ctrl = '';
-  if (d.kind === 'light') ctrl = sw('Bật / tắt');
+  if (d.kind === 'light' || d.kind === 'fan') ctrl = sw('Bật / tắt');
   if (d.kind === 'alarm') ctrl = sw('Canh gác');
   if (d.kind === 'garage') ctrl = `<div class="btns"><button class="btn" type="button" data-cmd="open">Mở</button><button class="btn" type="button" data-cmd="close">Đóng</button></div>`;
   if (d.kind === 'smoke') ctrl = `<div class="meter" aria-hidden="true"><div class="meter-fill"></div><div class="meter-mark" style="left:${(120/1023*100).toFixed(2)}%"></div></div><div class="meter-cap"><span class="lvl">0 / 1023</span><span>ngưỡng 120</span></div>` + sw('Còi báo khói');
   const paths = [d.path, d.cmd, d.trig, d.detected, d.mute].filter(Boolean).map(p => 'home/' + p).join('\n');
-  el.innerHTML = `<header><span class="lamp" aria-hidden="true"></span><h3>${d.label}</h3></header><p class="state" aria-live="polite">Chưa có dữ liệu</p>${d.hint ? `<p class="hint">${d.hint}</p>` : ''}<div class="ctrl">${ctrl}</div><code class="path"></code>`;
+  el.innerHTML = `<header><span class="lamp" aria-hidden="true"></span><h3>${d.label}</h3>${d.sim ? '<span class="sim-tag">Giả lập</span>' : ''}</header><p class="state" aria-live="polite">Chưa có dữ liệu</p>${d.hint ? `<p class="hint">${d.hint}</p>` : ''}${d.sim ? `<p class="hint">${SIM_NOTE}.</p>` : ''}<div class="ctrl">${ctrl}</div><code class="path"></code>`;
   el.querySelector('.path').textContent = d.id + ' · ' + paths.split('\n')[0] + (paths.includes('\n') ? ' …' : '');
   el.querySelector('.path').title = paths;
 
@@ -613,7 +635,14 @@ function isOn(d){ const v = get(tree, d.path); if (v == null) return null; retur
 
 function updateTile(d){
   const el = d.el, st = el.querySelector('.state');
+  el.hidden = d.sim && backend !== Sim;
   el.classList.remove('lit', 'open', 'alert', 'armed');
+  if (d.kind === 'fan') {
+    const on = isOn(d);
+    el.classList.toggle('lit', on === true);
+    st.textContent = on == null ? 'Chưa có dữ liệu' : on ? 'Đang chạy' : 'Tắt';
+    el.querySelector('.switch').setAttribute('aria-pressed', on === true);
+  }
   if (d.kind === 'light' || d.kind === 'auto') {
     const on = isOn(d);
     el.classList.toggle('lit', on === true);
@@ -655,13 +684,13 @@ const RULES = [
   ['floor_1/garage/status', v => v && [v === 'open' ? 'Cửa nhà xe đã mở' : 'Cửa nhà xe đã đóng', 'info']],
   ['floor_1/wc1_light', v => v === true && ['Có người vào WC 1, đèn bật', 'info']],
   ['floor_1/wc2_light', v => v === true && ['Có người vào WC 2, đèn bật', 'info']],
-  ['floor_1/alarm_triggered_1', v => v === true && ['Phát hiện chuyển động ở tầng 1', 'danger']],
+  ['floor_1/alarm_triggered_1', v => v === true && ['Phát hiện chuyển động ở nhà xe', 'danger']],
   ['floor_1/alarm_enabled_1', v => [v ? 'Bật báo trộm' : 'Tắt báo trộm', 'muted']],
   ['floor_2/smoke_detected_2', (v, t) => v ? ['Phát hiện khói ở tầng 2 (mức ' + get(t, 'floor_2/smoke_level_2') + ')', 'danger'] : ['Hết khói ở tầng 2', 'ok']],
   ['floor_2/buzzer_mute_2', v => [v ? 'Tắt còi báo khói' : 'Bật lại còi báo khói', 'muted']],
   ['door_status', v => v === true && ['Cửa tầng 3 mở bằng vân tay', 'info']],
-  ['floor_1/light_room_1', v => [v === false ? 'Đèn tầng 1 bật' : 'Đèn tầng 1 tắt', 'muted']],
-  ['floor_2/light_room_2', v => [v ? 'Đèn tầng 2 bật' : 'Đèn tầng 2 tắt', 'muted']],
+  ['floor_1/light_room_1', v => [v === false ? 'Quạt tầng 1 bật' : 'Quạt tầng 1 tắt', 'muted']],
+  ['floor_2/light_room_2', v => [v ? 'Đèn LED tầng 2 bật' : 'Đèn LED tầng 2 tắt', 'muted']],
   ['light_room_3', v => [v ? 'Đèn tầng 3 bật' : 'Đèn tầng 3 tắt', 'muted']],
   ['thongbao', v => v && ['Mạch báo: ' + v, 'info']]
 ];
@@ -695,17 +724,19 @@ function drawSpark(){
 const EVN_TIERS = [[50, 1984], [50, 2050], [100, 2380], [100, 2998], [100, 3350], [Infinity, 3460]];
 const GARAGE_RUN_S = 15;  // nhà thật: motor cửa cuốn chạy khoảng 15 giây mỗi lần mở hoặc đóng
 // Công suất mặc định là ước lượng cho nhà thật, sửa được trong bảng. Không có on(): tính theo lần chạy.
+// sim: thiết bị chỉ có khi mô phỏng, nối mạch thật thì không tính.
 const LOADS = [
-  { id:'light1', label:'Đèn tầng 1', w:20, on: t => get(t, 'floor_1/light_room_1') === false },
-  { id:'light2', label:'Đèn tầng 2', w:20, on: t => get(t, 'floor_2/light_room_2') === true },
-  { id:'light3', label:'Đèn tầng 3', w:20, on: t => get(t, 'light_room_3') === true },
-  { id:'wc1', label:'Đèn WC 1', w:9, on: t => get(t, 'floor_1/wc1_light') === true },
-  { id:'wc2', label:'Đèn WC 2', w:9, on: t => get(t, 'floor_1/wc2_light') === true },
-  { id:'garage', label:'Motor cửa cuốn', w:300, note:'Chạy ' + GARAGE_RUN_S + ' giây mỗi lần mở/đóng' },
+  { id:'fan1', label:'Quạt tầng 1', w:60, on: t => get(t, 'floor_1/light_room_1') === false },
+  { id:'light2', label:'Đèn LED tầng 2', w:20, on: t => get(t, 'floor_2/light_room_2') === true },
   { id:'alarm', label:'Báo trộm canh gác', w:2, on: t => get(t, 'floor_1/alarm_enabled_1') === true },
-  { id:'siren', label:'Còi báo trộm, báo khói', w:15, on: t => get(t, 'floor_1/alarm_triggered_1') === true || (get(t, 'floor_2/smoke_detected_2') === true && get(t, 'floor_2/buzzer_mute_2') !== true) },
-  { id:'base', label:'Mạch điều khiển', w:5, note:'6 ESP8266, LCD, cảm biến, luôn bật', on: () => true }
+  { id:'siren', label:'Còi báo trộm, báo cháy', w:15, on: t => get(t, 'floor_1/alarm_triggered_1') === true || (get(t, 'floor_2/smoke_detected_2') === true && get(t, 'floor_2/buzzer_mute_2') !== true) },
+  { id:'base', label:'Mạch điều khiển', w:5, note:'ESP8266, Arduino UNO, LCD, cảm biến, luôn bật', on: () => true },
+  { id:'light3', label:'Đèn tầng 3', w:20, sim:true, on: t => get(t, 'light_room_3') === true },
+  { id:'wc1', label:'Đèn WC 1', w:9, sim:true, on: t => get(t, 'floor_1/wc1_light') === true },
+  { id:'wc2', label:'Đèn WC 2', w:9, sim:true, on: t => get(t, 'floor_1/wc2_light') === true },
+  { id:'garage', label:'Motor cửa cuốn', w:300, sim:true, note:'Chạy ' + GARAGE_RUN_S + ' giây mỗi lần mở/đóng' }
 ];
+LOADS.forEach(l => { if (l.sim) l.note = 'Chỉ có khi mô phỏng' + (l.note ? '. ' + l.note : ''); });
 function tierCost(kwh){
   let left = kwh, cost = 0;
   for (const [size, price] of EVN_TIERS) { const k = Math.min(left, size); cost += k * price; left -= k; if (left <= 0) break; }
@@ -791,7 +822,7 @@ const Energy = {
     $('#e-span').textContent = 'Công suất (W), ' + duration(span) + ' gần nhất';
     LOADS.forEach(l => {
       const on = !!(l.on && l.on(tree)), st = l.row.querySelector('[data-k="state"]');
-      st.textContent = l.on ? (on ? num(this.watts[l.id], 0) + ' W' : 'Tắt') : this.moves + ' lần chạy';
+      st.textContent = l.sim && backend && backend !== Sim ? 'Không có' : l.on ? (on ? num(this.watts[l.id], 0) + ' W' : 'Tắt') : this.moves + ' lần chạy';
       st.classList.toggle('e-on', on);
       l.row.querySelector('[data-k="wh"]').textContent = fmtWh(this.wh[l.id]);
       l.row.querySelector('.e-share i').style.width = (total ? this.wh[l.id] / total * 100 : 0).toFixed(1) + '%';
@@ -813,9 +844,16 @@ const Energy = {
 Energy.init();
 
 /* ===== Nhận dữ liệu mới ===== */
+// Nhánh /home có thể còn giá trị cũ của thiết bị chỉ có khi mô phỏng: nối mạch thật thì bỏ đi
+const SIM_PATHS = Object.values(API_DEVICES).filter(d => d.sim).flatMap(d => [d.path, d.cmd, d.trig, d.detected, d.mute, d.humidity].filter(Boolean));
+function realOnly(t){
+  const c = clone(t);
+  SIM_PATHS.forEach(p => { const ks = p.split('/'), key = ks.pop(), parent = ks.length ? get(c, ks.join('/')) : c; if (parent && typeof parent === 'object') delete parent[key]; });
+  return c;
+}
 function onTree(t){
   Energy.step();  // tính phần điện của trạng thái cũ trước khi đổi
-  tree = t || {};
+  tree = backend === Sim ? (t || {}) : realOnly(t);
   ALL.forEach(updateTile);
   const temp = get(tree, 'floor_1/temperature_1'), humi = get(tree, 'floor_1/humidity_1');
   $('#r-temp').innerHTML = (typeof temp === 'number' ? temp.toFixed(1) : '—') + '<em>°C</em>';
@@ -832,7 +870,7 @@ function onTree(t){
 /* Gửi lệnh tới thiết bị theo id, giống hệt POST /api/devices/{id} */
 function command(id, action){ if (backend && backend.command) backend.command(id, action); }
 function localCommand(be, id, action){
-  try { Object.entries(resolveAction(tree, id, action)).forEach(([p, v]) => be.write(p, v)); }
+  try { Object.entries(resolveAction(tree, id, action, { sim: be === Sim })).forEach(([p, v]) => be.write(p, v)); }
   catch (e) { log(e.message, 'muted'); }
 }
 
@@ -856,7 +894,7 @@ const Sim = {
     if (a === 'wc1' || a === 'wc2') { const p = 'floor_1/' + a + '_light'; this.set(p, true); this.later(3000, () => this.set(p, false)); }
     if (a === 'pir') {
       if (get(this.tree, 'floor_1/alarm_enabled_1') === true) { this.set('floor_1/alarm_triggered_1', true); this.later(3000, () => this.set('floor_1/alarm_triggered_1', false)); }
-      else log('Có chuyển động ở tầng 1 nhưng báo trộm đang tắt', 'muted');
+      else log('Có chuyển động ở nhà xe nhưng báo trộm đang tắt', 'muted');
     }
     if (a === 'smoke') { this.boost = 430; this.tick(); }
   },
@@ -1045,7 +1083,7 @@ async function connectApi(){
 /* Bảng tra cứu API */
 (function(){
   const tb = $('#api-rows'); if (!tb) return;
-  Object.entries(API_DEVICES).forEach(([id, d]) => {
+  Object.entries(API_DEVICES).filter(([, d]) => !d.sim).forEach(([id, d]) => {
     const tr = document.createElement('tr');
     const acts = d.readOnly ? '<span class="ro">chỉ đọc</span>' : (ACTIONS[d.kind] || []).map(a => '<code>' + a + '</code>').join(' ');
     const paths = [d.path, d.cmd, d.trig, d.detected, d.mute, d.humidity].filter(Boolean).map(p => '<code>home/' + p + '</code>').join(' ');
@@ -1182,24 +1220,26 @@ function buildModel(){
   const gPivot = new THREE.Group(); gPivot.position.set(px(4), 1.0, pz(56)); F1.add(gPivot);
   const gDoor = B(gPivot, .025, 1.0, 12 * S, M.woodDark, 0, -.5, 0);
   for (let i = 1; i < 8; i++) B(gPivot, .03, .012, 12 * S, M.black, 0, -i * .125, 0);
-  // LCD + DHT11 + PIR trên tường trái phòng khách
+  // Hệ thống chống trộm ở nhà xe: LCD 16x2, DHT11, PIR, còi trên tường trái, cạnh cửa cuốn
   const lcdCanvas = document.createElement('canvas'); lcdCanvas.width = 256; lcdCanvas.height = 96; const lcdTex = new THREE.CanvasTexture(lcdCanvas);
-  B(F1, .02, .34, .7, M.black, px(4) + .035, 1.0, pz(32));
-  const lcd = new THREE.Mesh(new THREE.PlaneGeometry(.6, .24), new THREE.MeshBasicMaterial({ map: lcdTex })); lcd.rotation.y = Math.PI / 2; lcd.position.set(px(4) + .05, 1.0, pz(32)); F1.add(lcd);
+  B(F1, .02, .34, .7, M.black, px(4) + .035, 1.0, pz(70));
+  const lcd = new THREE.Mesh(new THREE.PlaneGeometry(.6, .24), new THREE.MeshBasicMaterial({ map: lcdTex })); lcd.rotation.y = Math.PI / 2; lcd.position.set(px(4) + .05, 1.0, pz(70)); F1.add(lcd);
   function drawLcd(t, h){ const c = lcdCanvas.getContext('2d'); c.fillStyle = '#1d4fa0'; c.fillRect(0, 0, 256, 96); c.fillStyle = '#e8f1ff'; c.font = '600 22px monospace'; c.fillText('Nhiet do: ' + (typeof t === 'number' ? t.toFixed(1) : '--') + '°C', 12, 38); c.fillText('Do am  : ' + (typeof h === 'number' ? h.toFixed(1) : '--') + '%', 12, 74); lcdTex.needsUpdate = true; }
   drawLcd();
-  B(F1, .03, .08, .1, mat(0x3a7bd5), px(4) + .04, .8, pz(36.5));
+  const dht = B(F1, .03, .08, .1, mat(0x3a7bd5), px(4) + .04, .72, pz(70));
   const pirMat = mat(0xf4f4f0, { emissive: 0xc23e2c, emissiveIntensity: 0 });
-  const pir = Ball(F1, .07, pirMat, px(4) + .06, 1.1, pz(38.5));
-  const alarmLight = new THREE.PointLight(0xff3b2b, 0, 7, 2); alarmLight.position.set(px(30), 1.0, pz(36)); F1.add(alarmLight);
+  const pir = Ball(F1, .07, pirMat, px(4) + .06, 1.1, pz(64.5));
+  const buzz1 = Cyl(F1, .045, .06, M.black, px(4) + .05, 1.0, pz(74.6)); buzz1.rotation.z = Math.PI / 2;
+  const alarmLight = new THREE.PointLight(0xff3b2b, 0, 7, 2); alarmLight.position.set(px(12), 1.0, pz(64)); F1.add(alarmLight);
   B(F1, .03, .12, .06, M.black, px(68) + .04, 1.0, pz(18)); B(F1, .03, .12, .06, M.black, px(80) + .04, 1.0, pz(16));
-  // Quạt trần trang trí
+  // Quạt trần phòng khách: relay floor_1/light_room_1 trên mạch cửa chính
   B(F1, .16, .05, 10 * S, M.mica, px(30), FH - .02, pz(31));
   Cyl(F1, .05, .12, M.silver, px(30), FH - .12, pz(36));
   const fan = new THREE.Group(); fan.position.set(px(30), FH - .2, pz(36)); F1.add(fan);
   for (let i = 0; i < 4; i++) { const bl = B(fan, .34, .012, .12, M.fanRed, 0, 0, 0); bl.geometry.translate(.18, 0, 0); bl.rotation.y = i * Math.PI / 2; }
-  let fanOn = false;
-  lightDev('light1', F1, [[4, 26.5, 60, 26.5], [4.5, 26, 4.5, 46], [60, 36.5, 92, 36.5]], FH - .04, [30, 1.1, 38], 7);
+  let fanOn = false, fanSpeed = 0;
+  // Dải đèn trần tầng 1 chỉ là đồ trang trí của mô hình: relay tầng 1 nối với quạt
+  lightDev('ceil1', F1,[[4, 26.5, 60, 26.5], [4.5, 26, 4.5, 46], [60, 36.5, 92, 36.5]], FH - .04, [30, 1.1, 38], 7);
   lightDev('wc1', F1, [[68, 6.5, 80, 6.5]], FH - .04, [74, 1.05, 16], 2.6);
   lightDev('wc2', F1, [[80, 6.5, 92, 6.5]], FH - .04, [86, 1.05, 16], 2.6);
   [['Phòng khách', 30, 36], ['Nhà xe', 12, 61], ['Bếp', 32, 52], ['Cầu thang', 31, 71], ['Hồ bơi', 40, 11], ['WC 1', 74, 15], ['WC 2', 86, 13], ['Phòng làm việc', 76, 44], ['Sảnh', 54, 66]].forEach(([t, x, z]) => label(0, t, x, FH + .2, z));
@@ -1341,21 +1381,23 @@ function buildModel(){
   const toggleLight = id => () => command(id, 'toggle');
   const simOnly = (act, liveText) => () => { if (Sm()) Sim.act(act); else flash(liveText); };
   const add = (f, objs, tipFn, act) => objs.forEach(o => clickables.push({ f, o, tipFn, act }));
-  add(0, LIGHTS.light1.hits.concat(LIGHTS.light1.strips), lightTip('light1', 'Đèn LED tầng 1'), toggleLight('light1'));
+  // Thiết bị chỉ có khi mô phỏng: nối mạch thật thì bấm vào chỉ báo là nhà thật không có
+  const simDev = (name, tipFn, act) => [() => Sm() ? tipFn() : [name, 'giả lập · chỉ có khi mô phỏng'], () => { if (Sm()) act(); else flash(name + ' chỉ có trong chế độ mô phỏng, nhà thật không lắp.'); }];
   add(1, LIGHTS.light2.hits.concat(LIGHTS.light2.strips), lightTip('light2', 'Đèn LED tầng 2'), toggleLight('light2'));
-  add(2, LIGHTS.light3.hits.concat(LIGHTS.light3.strips), lightTip('light3', 'Đèn LED tầng 3'), toggleLight('light3'));
-  ['wc1', 'wc2'].forEach((id, i) => add(0, LIGHTS[id].hits.concat(LIGHTS[id].strips), () => ['Đèn WC ' + (i + 1), onOff(isOn(D[id])) + (Sm() ? ' · bấm để giả lập có người' : ' · tự bật bằng cảm biến PIR')], simOnly(id, 'Đèn WC tự bật khi cảm biến PIR thấy người.')));
-  add(0, [gDoor], () => { const s = get(tree, D.garage.path); return ['Cửa cuốn nhà xe', (s === 'open' ? 'đang mở' : 'đã đóng') + ' · bấm để ' + (s === 'open' ? 'đóng' : 'mở')]; },
-      () => { if (backend && backend.pending && backend.pending.garage) return; command('garage', 'toggle'); });
-  add(0, [pir], () => { const en = get(tree, D.alarm.path) === true; return ['Cảm biến PIR báo trộm', (en ? 'đang canh gác' : 'đã tắt') + ' · bấm để ' + (en ? 'tắt' : 'bật')]; }, () => command('alarm', 'toggle'));
-  add(0, [lcd], () => ['LCD 16x2 · DHT11', 'Nhiệt độ ' + (get(tree, 'floor_1/temperature_1') ?? '—') + '°C · độ ẩm ' + (get(tree, 'floor_1/humidity_1') ?? '—') + '%'], () => {});
-  add(0, [keypad, door1Mesh], () => ['Cửa chính · bàn phím mật khẩu', Sm() ? 'bấm để giả lập nhập đúng mật khẩu' : 'nhập mật khẩu trên bàn phím của mạch'], simOnly('keypad', 'Cửa chính chỉ mở bằng bàn phím mật khẩu tại mạch.'));
-  add(0, fan.children, () => decoTip('fan'), () => toggleDeco('fan'));
-  add(1, [smokeBoard, smokeCan], () => { const m = get(tree, D.smoke.mute) === true; return ['Cảm biến khói MQ + còi', 'mức ' + (get(tree, D.smoke.path) ?? '—') + ' · còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt') + ' còi']; }, () => command('smoke', 'toggle'));
-  add(2, [finger, door3Mesh], () => ['Cửa mica tầng 3 · cảm biến vân tay', Sm() ? 'bấm để giả lập quét đúng vân tay' : 'quét vân tay trên cảm biến của mạch'], simOnly('finger', 'Cửa tầng 3 chỉ mở bằng vân tay tại mạch.'));
+  add(2, LIGHTS.light3.hits.concat(LIGHTS.light3.strips), ...simDev('Đèn tầng 3', lightTip('light3', 'Đèn tầng 3 · giả lập'), toggleLight('light3')));
+  ['wc1', 'wc2'].forEach((id, i) => add(0, LIGHTS[id].hits.concat(LIGHTS[id].strips), ...simDev('Đèn WC ' + (i + 1), () => ['Đèn WC ' + (i + 1) + ' · giả lập', onOff(isOn(D[id])) + ' · bấm để giả lập có người'], () => Sim.act(id))));
+  add(0, [gDoor], ...simDev('Cửa cuốn nhà xe', () => { const s = get(tree, D.garage.path); return ['Cửa cuốn nhà xe · giả lập', (s === 'open' ? 'đang mở' : 'đã đóng') + ' · bấm để ' + (s === 'open' ? 'đóng' : 'mở')]; },
+      () => { if (backend && backend.pending && backend.pending.garage) return; command('garage', 'toggle'); }));
+  add(0, [pir, buzz1], () => { const en = get(tree, D.alarm.path) === true; return ['Báo trộm nhà xe · PIR và còi', (en ? 'đang canh gác' : 'đã tắt') + ' · bấm để ' + (en ? 'tắt' : 'bật')]; }, () => command('alarm', 'toggle'));
+  add(0, [lcd, dht], () => ['LCD 16x2 · DHT11 (nhà xe)', 'Nhiệt độ ' + (get(tree, 'floor_1/temperature_1') ?? '—') + '°C · độ ẩm ' + (get(tree, 'floor_1/humidity_1') ?? '—') + '%'], () => {});
+  add(0, [keypad, door1Mesh], () => ['Cửa chính · bàn phím 4x4', Sm() ? 'bấm để giả lập nhập đúng mật khẩu' : 'nhập mật khẩu trên bàn phím của mạch'], simOnly('keypad', 'Cửa chính chỉ mở bằng bàn phím mật khẩu tại mạch.'));
+  const fanHit = Cyl(F1, .4, .14, M.hit, px(30), FH - .2, pz(36));
+  add(0, fan.children.concat([fanHit]), () => { const on = isOn(D.fan1) === true; return ['Quạt tầng 1', (on ? 'đang chạy' : 'đang tắt') + ' · bấm để ' + (on ? 'tắt' : 'bật')]; }, () => command('fan1', 'toggle'));
+  add(1, [smokeBoard, smokeCan], () => { const m = get(tree, D.smoke.mute) === true; return ['Cảm biến khói MQ-2 + còi', 'mức ' + (get(tree, D.smoke.path) ?? '—') + ' · còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt') + ' còi']; }, () => command('smoke', 'toggle'));
+  add(2, [finger, door3Mesh], () => ['Khóa cửa tầng 3 · cảm biến vân tay', Sm() ? 'bấm để giả lập quét đúng vân tay' : 'quét vân tay trên cảm biến của mạch'], simOnly('finger', 'Cửa tầng 3 chỉ mở bằng vân tay tại mạch.'));
   add(2, [buzz3], () => ['Còi tầng 3', 'bíp khi quét đúng vân tay'], () => {});
   add(1, [beacon], () => { const m = get(tree, D.smoke.mute) === true; return ['Còi báo khói tầng 2', 'còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt')]; }, () => command('smoke', 'toggle'));
-  add(-1, cabin.children, () => ['Thang máy', 'chạy bằng Arduino Uno riêng, không nối mạng · dùng nút gọi tầng bên dưới'], () => {});
+  add(-1, cabin.children, () => ['Thang máy · giả lập', 'nhà thật chạy Arduino UNO riêng (L298N, nút gọi, công tắc hành trình), không nối mạng · dùng nút gọi tầng bên dưới'], () => {});
 
   /* ===== Âm thanh (tạo bằng Web Audio, không cần file) ===== */
   const Snd = {
@@ -1384,7 +1426,8 @@ function buildModel(){
   function toggleDeco(key){ const d = DECO[key]; d.on = !d.on; d.apply(d.on); Snd[d.on ? 'up' : 'down'](); renderPanel(); }
   function decoTip(key){ const d = DECO[key]; return [d.name, (d.on ? d.onText : d.offText) + ' · bấm để đổi · chỉ trên mô hình']; }
   const addDeco = (f, key, objs) => objs.forEach(o => clickables.push({ f, o, tipFn: () => decoTip(key), act: () => toggleDeco(key) }));
-  deco('fan', 'Quạt trần', 'đang quay', 'đang tắt', false, v => { fanOn = v; });
+  deco('ceil1', 'Đèn trần tầng 1', 'đang sáng', 'đang tắt', false, v => { LIGHTS.ceil1.on = v; });
+  addDeco(0, 'ceil1', LIGHTS.ceil1.hits.concat(LIGHTS.ceil1.strips));
   // Rèm: mở thì gom về hai bên, đóng thì kéo kín cửa sổ
   DR.cur3.forEach((c, i) => { c.userData.open = { sx: 1, x: px(i ? 23.5 : 6.5) }; c.userData.shut = { sx: 3.6, x: px(i ? 20.5 : 9.5) }; });
   DR.cur2.forEach((c, i) => { c.userData.open = { sx: .55, x: px(i ? 36.6 : 11.4) }; c.userData.shut = { sx: 2.8, x: px(i ? 31 : 17) }; });
@@ -1452,9 +1495,9 @@ function buildModel(){
 
   /* ===== Phòng, bảng điều khiển phòng, nhãn thiết bị ===== */
   const ROOMS = [
-    { f: 0, name: 'Phòng khách', r: [4, 26, 60, 46], dev: ['light1', 'alarm', 'climate'], deco: ['fan'] },
+    { f: 0, name: 'Phòng khách', r: [4, 26, 60, 46], dev: ['fan1'], deco: ['ceil1'] },
     { f: 0, name: 'Sân và hồ bơi', r: [0, -2, 68, 26], dev: [], deco: ['pool'] },
-    { f: 0, name: 'Nhà xe', r: [4, 46, 20, 76], dev: ['garage'], deco: [] },
+    { f: 0, name: 'Nhà xe', r: [4, 46, 20, 76], dev: ['alarm', 'climate', 'garage'], deco: [] },
     { f: 0, name: 'Bếp và cầu thang', r: [20, 46, 44, 76], dev: [], deco: [] },
     { f: 0, name: 'Sảnh, cửa chính', r: [44, 46, 64, 76], dev: ['door1'], deco: [] },
     { f: 0, name: 'WC 1', r: [68, 6, 80, 26], dev: ['wc1'], deco: [] },
@@ -1466,7 +1509,7 @@ function buildModel(){
     { f: 2, name: 'Góc Bar', r: [4, 50, 18, 81], dev: ['light3'], deco: ['bar'] },
     { f: 2, name: 'Không gian chung tầng 3', r: [18, 26, 92, 81], dev: ['light3', 'door3'], deco: ['bar'] }
   ];
-  const SHORT = { light1: 'Đèn T1', alarm: 'Báo trộm', climate: 'DHT11', garage: 'Nhà xe', door1: 'Cửa chính', wc1: 'WC 1', wc2: 'WC 2', light2: 'Đèn T2', smoke: 'Báo khói', light3: 'Đèn T3', door3: 'Cửa vân tay' };
+  const SHORT = { fan1: 'Quạt T1', alarm: 'Báo trộm', climate: 'DHT11', garage: 'Cửa cuốn', door1: 'Cửa chính', wc1: 'WC 1', wc2: 'WC 2', light2: 'Đèn T2', smoke: 'Báo cháy', light3: 'Đèn T3', door3: 'Khóa vân tay' };
   const SIM_FOR = { door1: 'keypad', door3: 'finger', wc1: 'wc1', wc2: 'wc2' };
   const roomOf = id => ROOMS.find(r => r.dev.includes(id));
   const planX = x => x / S + CX, planZ = z => z / S + CZ;
@@ -1475,6 +1518,7 @@ function buildModel(){
     const st = deviceState(tree, id), d = API_DEVICES[id];
     switch (d.kind) {
       case 'light': return { text: st.on == null ? 'chưa có dữ liệu' : st.on ? 'Bật' : 'Tắt', cls: st.on ? 'on' : '', on: st.on === true };
+      case 'fan': return { text: st.on == null ? 'chưa có dữ liệu' : st.on ? 'Đang chạy' : 'Tắt', cls: st.on ? 'on' : '', on: st.on === true };
       case 'auto': return { text: st.on ? 'Sáng (có người)' : 'Tắt', cls: st.on ? 'on' : '', on: st.on === true };
       case 'door': return { text: st.open ? 'Đang mở' : 'Đã đóng', cls: st.open ? 'open' : '' };
       case 'garage': return { text: st.status === 'open' ? 'Đang mở' : st.status === 'closed' ? 'Đã đóng' : 'chưa có dữ liệu', cls: st.status === 'open' ? 'open' : '', open: st.status === 'open' };
@@ -1490,9 +1534,11 @@ function buildModel(){
   function renderPanel(){
     if (!panelRoom) { panelEl.hidden = true; panelEl.dataset.html = ''; return; }
     const r = panelRoom; let h = '<div class="m-ph"><div><b>' + r.name + '</b><small>Tầng ' + (r.f + 1) + ' · bấm sàn phòng khác để đổi</small></div><button type="button" class="m-x" data-close aria-label="Đóng bảng">×</button></div>';
-    r.dev.forEach(id => {
+    const devs = r.dev.filter(id => Sm() || !API_DEVICES[id].sim);
+    devs.forEach(id => {
       const d = API_DEVICES[id], st = stateOf(id); let ctrl = '';
-      if (d.kind === 'light' || d.kind === 'alarm') ctrl = '<button class="switch" type="button" data-dev="' + id + '" data-act="toggle" aria-pressed="' + !!st.on + '" aria-label="' + d.label + '"><span></span></button>';
+      if (d.sim) st.text += ' · giả lập';
+      if (d.kind === 'light' || d.kind === 'fan' || d.kind === 'alarm') ctrl = '<button class="switch" type="button" data-dev="' + id + '" data-act="toggle" aria-pressed="' + !!st.on + '" aria-label="' + d.label + '"><span></span></button>';
       else if (d.kind === 'smoke') ctrl = '<button class="switch" type="button" data-dev="smoke" data-act="toggle" aria-pressed="' + !!st.on + '" aria-label="Còi báo khói"><span></span></button>';
       else if (d.kind === 'garage') ctrl = '<div class="btns"><button class="btn" type="button" data-dev="garage" data-act="open">Mở</button><button class="btn" type="button" data-dev="garage" data-act="close">Đóng</button></div>';
       else if (SIM_FOR[id] && Sm()) ctrl = '<button class="btn" type="button" data-sim="' + SIM_FOR[id] + '">Giả lập</button>';
@@ -1503,7 +1549,7 @@ function buildModel(){
       const d = DECO[k];
       h += '<div class="m-row deco"><div>' + d.name + '<small>' + (d.on ? d.onText : d.offText) + ' · chỉ trên mô hình</small></div><button class="switch" type="button" data-deco="' + k + '" aria-pressed="' + d.on + '" aria-label="' + d.name + '"><span></span></button></div>';
     });
-    if (!r.dev.length && !r.deco.length) h += '<p class="m-empty">Phòng này chưa gắn thiết bị nào.</p>';
+    if (!devs.length && !r.deco.length) h += '<p class="m-empty">Phòng này chưa gắn thiết bị nào.</p>';
     if (panelEl.dataset.html !== h) { panelEl.innerHTML = h; panelEl.dataset.html = h; } panelEl.hidden = false;
   }
   panelEl.addEventListener('click', ev => {
@@ -1514,13 +1560,13 @@ function buildModel(){
     if (b.dataset.dev) { command(b.dataset.dev, b.dataset.act); Snd.click(); }
   });
   const BADGES = [
-    ['light1', 0, 30, FH - .12, 33], ['alarm', 0, 6, 1.32, 38.5], ['climate', 0, 6, 1.42, 31], ['garage', 0, 6, 1.18, 56], ['door1', 0, 52, 1.32, 76],
+    ['fan1', 0, 30, FH - .12, 33], ['alarm', 0, 6, 1.28, 64.5], ['climate', 0, 6, 1.56, 71], ['garage', 0, 6, 1.18, 54], ['door1', 0, 52, 1.32, 76],
     ['wc1', 0, 74, 1.32, 16], ['wc2', 0, 86, 1.32, 16], ['light2', 1, 26, fy(1) + 1.2, 40], ['smoke', 1, 34, fy(1) + .38, 44], ['light3', 2, 60, fy(2) + 1.2, 40], ['door3', 2, 26, fy(2) + 1.45, 43]
   ].map(([id, f, x, y, z]) => {
     const el = document.createElement('button'); el.type = 'button'; el.className = 'm-badge'; el.innerHTML = '<i></i><span></span>';
     el.addEventListener('click', () => { Snd.click(); const d = API_DEVICES[id]; if (!d.readOnly) command(id, 'toggle'); else openPanel(roomOf(id)); });
     $('#model-badges').appendChild(el);
-    return { id, f, el, v: new THREE.Vector3(px(x), y, pz(z)) };
+    return { id, f, el, sim: !!API_DEVICES[id].sim, v: new THREE.Vector3(px(x), y, pz(z)) };
   });
   let badgesOn = true;
   function refreshBadges(){ BADGES.forEach(b => { const st = stateOf(b.id); b.el.className = 'm-badge ' + st.cls; b.el.lastChild.textContent = SHORT[b.id] + ' · ' + st.text; b.el.title = API_DEVICES[b.id].label + ': ' + st.text; }); }
@@ -1772,14 +1818,17 @@ function buildModel(){
   let lastLcd = '', prevSnd = null;
   function update(t){
     const snap = { l: {}, d1: get(t, D.door1.path) === true, d3: get(t, D.door3.path) === true, g: get(t, D.garage.path), trig: get(t, D.alarm.trig) === true };
-    Object.keys(LIGHTS).forEach(id => snap.l[id] = isOn(D[id]) === true);
+    const devLights = Object.keys(LIGHTS).filter(id => D[id]);  // ceil1 là đồ trang trí, không đọc từ /home
+    devLights.forEach(id => snap.l[id] = isOn(D[id]) === true);
+    snap.l.fan1 = isOn(D.fan1) === true;
     if (prevSnd) {
       Object.keys(snap.l).forEach(id => { if (snap.l[id] !== prevSnd.l[id]) Snd[snap.l[id] ? 'up' : 'down'](); });
       if ((snap.d1 && !prevSnd.d1) || (snap.d3 && !prevSnd.d3)) Snd.door();
       if (snap.g !== prevSnd.g || (backend && backend.pending && backend.pending.garage && !prevSnd.pg)) Snd.motor();
     }
     snap.pg = !!(backend && backend.pending && backend.pending.garage); prevSnd = snap;
-    Object.keys(LIGHTS).forEach(id => LIGHTS[id].on = isOn(D[id]) === true);
+    devLights.forEach(id => LIGHTS[id].on = snap.l[id]);
+    fanOn = snap.l.fan1;
     tgt.door1 = get(t, D.door1.path) === true ? 1.3 : 0;
     tgt.door3 = get(t, D.door3.path) === true ? -1.3 : 0;
     tgt.garage = get(t, D.garage.path) === 'open' ? .06 : 1;
@@ -1789,7 +1838,7 @@ function buildModel(){
     const key = temp + '|' + humi; if (key !== lastLcd) { lastLcd = key; drawLcd(temp, humi); }
     refreshBadges(); if (panelRoom) renderPanel();
     const msgs = [];
-    if (tgt.trig) msgs.push('Báo trộm: có chuyển động ở tầng 1');
+    if (tgt.trig) msgs.push('Báo trộm: có chuyển động ở nhà xe');
     if (tgt.smokeDet) msgs.push('Báo cháy: có khói ở tầng 2' + (tgt.mute ? ' (còi đã tắt)' : ''));
     alertEl.textContent = msgs.join(' · '); alertEl.hidden = !msgs.length; wrap.classList.toggle('alarm', msgs.length > 0);
   }
@@ -1814,7 +1863,7 @@ function buildModel(){
     keyLed.material.emissiveIntensity = tgt.door1 ? 2 : 0;
     finger.material.emissiveIntensity = tgt.door3 ? 2 : .25 + .15 * Math.sin(tt * 2);
     gPivot.scale.y = lerp(gPivot.scale.y, tgt.garage, k * .35);
-    if (fanOn) fan.rotation.y += dt * 9;
+    fanSpeed = lerp(fanSpeed, fanOn ? 9 : 0, k * .25); fan.rotation.y += dt * fanSpeed;
     const blink = Math.sin(tt * 12) > 0;
     alarmLight.intensity = tgt.trig ? (blink ? 2.6 : .2) : 0;
     pirMat.emissiveIntensity = tgt.trig ? (blink ? 1.2 : .1) : (tgt.alarmOn ? .18 : 0);
@@ -1835,7 +1884,7 @@ function buildModel(){
     renderer.render(scene, camera);
     const w = wrap.clientWidth, h = wrap.clientHeight;
     BADGES.forEach(b => {
-      let show = badgesOn && floors[b.f].visible;
+      let show = badgesOn && floors[b.f].visible && (!b.sim || Sm());
       if (show) show = walk.on ? (b.f === walk.f && b.v.distanceTo(camera.position) < 3.6) : (view <= 3 && b.f === view - 1);
       if (show) { v3.copy(b.v).project(camera); show = v3.z < 1 && Math.abs(v3.x) < 1 && Math.abs(v3.y) < 1; }
       b.el.hidden = !show; if (show) { b.el.style.left = ((v3.x + 1) / 2 * w) + 'px'; b.el.style.top = ((-v3.y + 1) / 2 * h) + 'px'; }

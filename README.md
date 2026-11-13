@@ -12,7 +12,7 @@ Trang web (public/nha-iot.html)  →  /api/devices (Next.js)  →  Firebase /hom
 |---|---|
 | `public/nha-iot.html` | Trang điều khiển + mô hình 3D (mô phỏng, đi vào nhà, kết nối API hoặc Firebase) |
 | `src/app/api/devices/` | API: `GET /api/devices`, `GET` và `POST /api/devices/{id}` |
-| `src/lib/devices.js` | Danh mục 11 thiết bị, đường dẫn Firebase, cách dịch lệnh |
+| `src/lib/devices.js` | Danh mục thiết bị (7 thiết bị thật, 4 thiết bị chỉ có khi mô phỏng), đường dẫn Firebase, cách dịch lệnh |
 | `src/lib/firebaseAdmin.js` | Kết nối Firebase bằng khóa service account |
 | `src/lib/apiAuth.js` | Kiểm tra khóa API, CORS |
 | `.env` | Cấu hình Firebase, khóa service account, khóa API. **Bí mật, không chia sẻ, không đưa lên GitHub** |
@@ -34,23 +34,25 @@ Kiểm tra nhanh API: mở http://localhost:3000/api/devices. Thấy "Sai hoặc
 ## Nạp firmware
 
 1. Trong Firebase → Authentication → Utilisateurs → **Ajouter un utilisateur**: tạo tài khoản cho mạch. Nếu đây là tài khoản mới (không phải tài khoản đang có), thêm UID của nó vào Rules, xem mục [Bảo mật và hạn mức Firebase](#bảo-mật-và-hạn-mức-firebase).
-2. Trong 6 file dưới đây, thay `DIEN_EMAIL_TAI_KHOAN_MACH` và `DIEN_MAT_KHAU_TAI_KHOAN_MACH` bằng tài khoản vừa tạo, và `DIEN_MAT_KHAU_CAI_DAT` bằng mật khẩu Wi-Fi cài đặt do bạn tự đặt (từ 8 ký tự, **giống nhau ở cả 6 file**). Mật khẩu Wi-Fi nhà không nằm trong code, xem bước 5. **Không commit file đã điền mật khẩu lên GitHub.**
+2. Trong file firmware của từng mạch ESP8266 nối mạng đang lắp (bảng dưới đây), thay `DIEN_EMAIL_TAI_KHOAN_MACH` và `DIEN_MAT_KHAU_TAI_KHOAN_MACH` bằng tài khoản vừa tạo, và `DIEN_MAT_KHAU_CAI_DAT` bằng mật khẩu Wi-Fi cài đặt do bạn tự đặt (từ 8 ký tự, **giống nhau ở mọi mạch**). Mật khẩu Wi-Fi nhà không nằm trong code, xem bước 5. **Không commit file đã điền mật khẩu lên GitHub.**
 3. Arduino IDE → Library Manager cài: **Firebase Arduino Client Library for ESP8266 and ESP32** (Mobizt), **LiquidCrystal I2C**, **Keypad**, **DHT sensor library**, **Adafruit Unified Sensor**, **Adafruit Fingerprint Sensor Library**, **Adafruit SSD1306**, **Adafruit GFX**. **Keypad_I2C** không có trong Library Manager: tải [joeyoung/arduino_keypads](https://github.com/joeyoung/arduino_keypads), chép thư mục `Keypad_I2C` vào `Documents/Arduino/libraries`.
 4. Chép thư mục `firmware/libraries/WiFiShare` vào `Documents/Arduino/libraries`. Board: NodeMCU 1.0 (ESP-12E), giữ Flash Size mặc định (có 2 MB FS để lưu mạng).
-5. **Vào Wi-Fi nhà lần đầu:** nạp xong cả 6 mạch rồi bật chúng cùng lúc. Chưa có mạng nên khoảng 1 phút sau, một mạch phát Wi-Fi `SmartHouse-CaiDat`. Vào Wi-Fi đó bằng điện thoại (mật khẩu ở bước 2), trang cài đặt tự mở (hoặc mở `http://192.168.4.1`). Chọn Wi-Fi nhà, nhập mật khẩu, bấm **Lưu và chuyển mạng**. Mỗi mạch tự vào Wi-Fi nhà và báo lại trên trang; xong thì Wi-Fi cài đặt tắt. Mạng được lưu trong mạch, nạp lại firmware vẫn còn.
+5. **Vào Wi-Fi nhà lần đầu:** nạp xong tất cả các mạch rồi bật chúng cùng lúc. Chưa có mạng nên khoảng 1 phút sau, một mạch phát Wi-Fi `SmartHouse-CaiDat`. Vào Wi-Fi đó bằng điện thoại (mật khẩu ở bước 2), trang cài đặt tự mở (hoặc mở `http://192.168.4.1`). Chọn Wi-Fi nhà, nhập mật khẩu, bấm **Lưu và chuyển mạng**. Mỗi mạch tự vào Wi-Fi nhà và báo lại trên trang; xong thì Wi-Fi cài đặt tắt. Mạng được lưu trong mạch, nạp lại firmware vẫn còn.
 
 Sau này đổi router hoặc mật khẩu Wi-Fi thì các mạch không vào được mạng, Wi-Fi cài đặt tự hiện lại: làm như bước 5. Mạch nào đang tắt lúc đó, bật lên sau sẽ tự phát Wi-Fi cài đặt riêng; nhập mạng thêm một lần cho nó. Chi tiết: `firmware/libraries/WiFiShare/README.md`.
 
 | Firmware | Mạch | Thiết bị |
 |---|---|---|
-| `cua_chinh` | ESP8266 | Tầng 1: cửa chính (bàn phím, LCD, servo), đèn tầng 1 |
-| `nha_xe_moi_nhat` | ESP8266 | Tầng 1: cửa cuốn nhà xe |
-| `den_wc` | ESP8266 | Tầng 1: 2 đèn WC tự bật bằng PIR |
-| `bao_trom_va_do_am` | ESP8266 | Tầng 1: báo trộm PIR, DHT11, LCD |
-| `baochay_denl2` | ESP8266 | Tầng 2: cảm biến khói, còi, đèn, nút nhấn |
-| `van_tay` | ESP8266 | Tầng 3: cửa vân tay, đèn tầng 3 |
-| `thang_may` | Arduino Uno | Thang máy 3 tầng (không nối mạng) |
+| `cua_chinh` | ESP8266 | Tầng 1: cửa chính (bàn phím 4x4, LCD, động cơ cửa), quạt tầng 1 (relay `light_room_1`) |
+| `bao_trom_va_do_am` | ESP8266 | Tầng 1, ở nhà xe: báo trộm hồng ngoại, còi, DHT11, LCD 16x2 |
+| `baochay_denl2` | ESP8266 | Tầng 2: cảm biến khói MQ-2, còi, đèn LED, nút nhấn |
+| `van_tay` | ESP8266 | Tầng 3: khóa cửa vân tay |
+| `thang_may` | Arduino Uno | Thang máy 3 tầng: động cơ L298N, nút gọi, công tắc hành trình (không nối mạng) |
 | `led_oled` | ESP8266 | Màn hình chào OLED (không nối mạng) |
+| `nha_xe_moi_nhat` | ESP8266 | Cửa cuốn nhà xe. **Nhà thật không lắp**, trên web chỉ có khi mô phỏng |
+| `den_wc` | ESP8266 | 2 đèn WC tự bật bằng PIR. **Nhà thật không lắp**, trên web chỉ có khi mô phỏng |
+
+Đèn tầng 3 (`light_room_3` trong `van_tay`) cũng chỉ có khi mô phỏng. Thiết bị chỉ có khi mô phỏng được đánh dấu `sim: true` trong `src/lib/devices.js`: API, app điện thoại và trang web ở chế độ mạch thật bỏ qua chúng. Lắp thêm thiết bị nào thì bỏ `sim: true` của nó (ở cả `src/lib/devices.js` và bản sao trong `public/nha-iot.html`).
 
 ## Bảo mật và hạn mức Firebase
 
