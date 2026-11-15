@@ -51,6 +51,7 @@ Sau này đổi router hoặc mật khẩu Wi-Fi thì các mạch không vào đ
 | `led_oled` | ESP8266 | Màn hình chào OLED (không nối mạng) |
 | `nha_xe_moi_nhat` | ESP8266 | Cửa cuốn nhà xe. **Nhà thật không lắp**, trên web chỉ có khi mô phỏng |
 | `den_wc` | ESP8266 | 2 đèn WC tự bật bằng PIR. **Nhà thật không lắp**, trên web chỉ có khi mô phỏng |
+| `floor_1_Duy` | ESP8266 | Bản gộp tầng 1 trên một mạch, thay cho `cua_chinh` + `nha_xe_moi_nhat` + phần DHT11 của `bao_trom_va_do_am`: cửa chính (bàn phím, LCD, servo, còi), cửa garage và quạt (một L298N), 2 dây LED (`led_strip_1`, `led_strip_2`), DHT11 + LCD thứ hai. Sơ đồ chân ở đầu file. Không chạy chung với các mạch nó thay thế. Web và app chưa có garage thật và 2 dây LED |
 
 Đèn tầng 3 (`light_room_3` trong `van_tay`) cũng chỉ có khi mô phỏng. Thiết bị chỉ có khi mô phỏng được đánh dấu `sim: true` trong `src/lib/devices.js`: API, app điện thoại và trang web ở chế độ mạch thật bỏ qua chúng. Lắp thêm thiết bị nào thì bỏ `sim: true` của nó (ở cả `src/lib/devices.js` và bản sao trong `public/nha-iot.html`).
 
