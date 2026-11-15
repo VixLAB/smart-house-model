@@ -10,12 +10,12 @@ Trang web (public/nha-iot.html)  →  /api/devices (Next.js)  →  Firebase /hom
 
 | Đường dẫn | Nội dung |
 |---|---|
-| `public/nha-iot.html` | Trang điều khiển + mô hình 3D (mô phỏng, đi vào nhà, kết nối API hoặc Firebase) |
+| `public/nha-iot.html` | Trang điều khiển + mô hình 3D (mô phỏng, đi vào nhà, mạch thật qua API) |
 | `src/app/api/devices/` | API: `GET /api/devices`, `GET` và `POST /api/devices/{id}` |
-| `src/lib/devices.js` | Danh mục thiết bị (7 thiết bị thật, 4 thiết bị chỉ có khi mô phỏng), đường dẫn Firebase, cách dịch lệnh |
-| `src/lib/firebaseAdmin.js` | Kết nối Firebase bằng khóa service account |
+| `src/lib/devices.js` | Danh mục thiết bị (10 thiết bị thật, 3 thiết bị chỉ có khi mô phỏng), đường dẫn Firebase, cách dịch lệnh |
+| `src/lib/firebaseAdmin.js` | Server đọc/ghi Firebase bằng tài khoản email/mật khẩu hoặc khóa service account trong biến môi trường |
 | `src/lib/apiAuth.js` | Kiểm tra khóa API, CORS |
-| `.env` | Cấu hình Firebase, khóa service account, khóa API. **Bí mật, không chia sẻ, không đưa lên GitHub** |
+| `.env` | Biến môi trường khi chạy trên máy, xem [Biến môi trường](#biến-môi-trường). **Bí mật, không chia sẻ, không đưa lên GitHub** |
 | `firmware/` | Code Arduino cho các mạch (đã trỏ sang project mới) |
 
 ## Chạy web
@@ -27,9 +27,21 @@ npm install
 npm run dev
 ```
 
-Mở http://localhost:3000 (tự chuyển tới trang điều khiển). Bấm **Mạch thật → Qua API riêng**, để trống địa chỉ, nhập khóa API (dòng `SMART_HOME_API_KEY` trong `.env`), bấm **Kết nối**.
+Mở http://localhost:3000: trang chủ chính là trang điều khiển (file `public/nha-iot.html`, phục vụ tại `/` nhờ `next.config.mjs`; link cũ `/nha-iot.html` tự về `/`). Bấm **Mạch thật**: trang tự nối qua API của chính nó, không hỏi email hay mật khẩu. Nếu đã đặt `SMART_HOME_API_KEY` thì trang hỏi khóa này.
 
 Kiểm tra nhanh API: mở http://localhost:3000/api/devices. Thấy "Sai hoặc thiếu khóa API" là server đã chạy đúng.
+
+## Biến môi trường
+
+Đặt trong file `.env` khi chạy trên máy, hoặc trên Vercel ở Settings → Environment Variables (đổi xong phải **Redeploy**). Tài khoản Firebase chỉ nằm trên server, trang web không thấy.
+
+| Biến | Nội dung |
+|---|---|
+| `FIREBASE_EMAIL` | Email tài khoản Firebase Authentication mà server dùng, vd. tài khoản của các mạch. UID của nó phải có trong Rules |
+| `FIREBASE_PASSWORD` | Mật khẩu tài khoản đó |
+| `SMART_HOME_API_KEY` | Khóa tự đặt (chuỗi dài, ngẫu nhiên). **Nên đặt**: không có khóa thì ai biết địa chỉ trang cũng bật tắt được thiết bị, mở được cửa garage |
+| `FIREBASE_SERVICE_ACCOUNT` | Không bắt buộc. Có thì server dùng khóa service account (JSON trên một dòng) thay cho email/mật khẩu |
+| `FIREBASE_API_KEY`, `FIREBASE_DATABASE_URL` | Không bắt buộc. Mặc định là của project `smart-house-fcd4f` |
 
 ## Nạp firmware
 
@@ -49,19 +61,19 @@ Sau này đổi router hoặc mật khẩu Wi-Fi thì các mạch không vào đ
 | `van_tay` | ESP8266 | Tầng 3: khóa cửa vân tay |
 | `thang_may` | Arduino Uno | Thang máy 3 tầng: động cơ L298N, nút gọi, công tắc hành trình (không nối mạng) |
 | `led_oled` | ESP8266 | Màn hình chào OLED (không nối mạng) |
-| `nha_xe_moi_nhat` | ESP8266 | Cửa cuốn nhà xe. **Nhà thật không lắp**, trên web chỉ có khi mô phỏng |
+| `nha_xe_moi_nhat` | ESP8266 | Cửa cuốn nhà xe, bản cũ trên mạch riêng. Nay nằm trong `floor_1_Duy` |
 | `den_wc` | ESP8266 | 2 đèn WC tự bật bằng PIR. **Nhà thật không lắp**, trên web chỉ có khi mô phỏng |
-| `floor_1_Duy` | ESP8266 | Bản gộp tầng 1 trên một mạch, thay cho `cua_chinh` + `nha_xe_moi_nhat` + phần DHT11 của `bao_trom_va_do_am`: cửa chính (bàn phím, LCD, servo, còi), cửa garage và quạt (một L298N), 2 dây LED (`led_strip_1`, `led_strip_2`), DHT11 + LCD thứ hai. Sơ đồ chân ở đầu file. Không chạy chung với các mạch nó thay thế. Web và app chưa có garage thật và 2 dây LED |
+| `floor_1_Duy` | ESP8266 | Bản gộp tầng 1 trên một mạch, thay cho `cua_chinh` + `nha_xe_moi_nhat` + phần DHT11 của `bao_trom_va_do_am`: cửa chính (bàn phím, LCD, servo, còi), cửa garage và quạt (một L298N), 2 dây LED (`led_strip_1`, `led_strip_2`), DHT11 + LCD thứ hai. Sơ đồ chân ở đầu file. Không chạy chung với các mạch nó thay thế |
 
 Đèn tầng 3 (`light_room_3` trong `van_tay`) cũng chỉ có khi mô phỏng. Thiết bị chỉ có khi mô phỏng được đánh dấu `sim: true` trong `src/lib/devices.js`: API, app điện thoại và trang web ở chế độ mạch thật bỏ qua chúng. Lắp thêm thiết bị nào thì bỏ `sim: true` của nó (ở cả `src/lib/devices.js` và bản sao trong `public/nha-iot.html`).
 
 ## Bảo mật và hạn mức Firebase
 
-- **Rules** chỉ cho đúng tài khoản của mạch đọc/ghi nhánh `/home`. Thêm tài khoản khác (vd. cho web ở chế độ Firebase) thì vào Realtime Database → Rules, thêm `|| auth.uid === '<UID>'` vào cả `.read` và `.write`. Web ở chế độ API dùng service account nên không bị Rules chặn.
+- **Rules** chỉ cho đúng tài khoản của mạch (và app) đọc/ghi nhánh `/home`. Server web dùng `FIREBASE_EMAIL` cũng phải có UID trong Rules; dùng luôn tài khoản của mạch là đơn giản nhất. Thêm tài khoản khác thì vào Realtime Database → Rules, thêm `|| auth.uid === '<UID>'` vào cả `.read` và `.write`. Nếu dùng `FIREBASE_SERVICE_ACCOUNT` thì không bị Rules chặn.
 - **Tự đăng ký tài khoản đã tắt** (Authentication → Settings → User actions). API key nằm công khai trong code, nên nếu bật lại thì ai cũng tạo được tài khoản.
 - **Hạn mức gói Spark miễn phí: tải xuống 10 GB/tháng**, tính cả header HTTP và mã hóa. Vì vậy firmware nhận lệnh qua **stream** (giữ một kết nối, chỉ nhận dữ liệu khi giá trị đổi) và chỉ ghi khi giá trị đổi, không đọc/ghi Firebase ở mỗi vòng `loop()`. Khi sửa firmware, giữ nguyên cách này. Theo dõi mức dùng ở Realtime Database → Usage.
 - Trang web ở chế độ API hỏi `/api/devices` mỗi 1,5 giây và tự ngừng khi tab bị ẩn.
 
 ## Đưa lên mạng (tùy chọn)
 
-Đẩy thư mục lên GitHub (file `.env` đã nằm trong `.gitignore`), tạo project trên Vercel, rồi vào Settings → Environment Variables chép từng dòng trong `.env` vào.
+Đẩy thư mục lên GitHub (file `.env` đã nằm trong `.gitignore`), tạo project trên Vercel, rồi vào Settings → Environment Variables thêm các biến ở mục [Biến môi trường](#biến-môi-trường) và Redeploy. Nối project Vercel với repo GitHub (Settings → Git) thì mỗi lần push, Vercel tự triển khai bản mới.
