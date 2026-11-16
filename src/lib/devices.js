@@ -6,9 +6,8 @@
 // chúng (theo sơ đồ phần cứng), nên API, app điện thoại và điều khiển bằng giọng nói bỏ qua.
 
 export const DEVICES = {
-  fan1:   { floor: 1, kind: 'fan', label: 'Quạt tầng 1', path: 'floor_1/light_room_1', invert: true, source: 'floor_1_Duy.ino' },
-  led1:   { floor: 1, kind: 'light', label: 'Dây LED 1 tầng 1', path: 'floor_1/led_strip_1', source: 'floor_1_Duy.ino' },
-  led2:   { floor: 1, kind: 'light', label: 'Dây LED 2 tầng 1', path: 'floor_1/led_strip_2', source: 'floor_1_Duy.ino' },
+  light1: { floor: 1, kind: 'light', label: 'Đèn tầng 1 (2 dây LED)', path: 'floor_1/light_room_1', invert: true, source: 'floor_1_Duy.ino' },
+  fan1:   { floor: 1, kind: 'fan', label: 'Quạt tầng 1', path: 'floor_1/fan_room_1', source: 'floor_1_Duy.ino' },
   door1:  { floor: 1, kind: 'door', label: 'Cửa chính', path: 'floor_1/door_opened_1', readOnly: 'Cửa chính chỉ mở bằng bàn phím mật khẩu tại mạch.', source: 'floor_1_Duy.ino' },
   garage: { floor: 1, kind: 'garage', label: 'Cửa cuốn nhà xe', path: 'floor_1/garage/status', cmd: 'floor_1/garage/command', source: 'floor_1_Duy.ino' },
   alarm:  { floor: 1, kind: 'alarm', label: 'Báo trộm nhà xe (PIR)', path: 'floor_1/alarm_enabled_1', trig: 'floor_1/alarm_triggered_1', source: 'bao_trom_va_do_am.ino' },

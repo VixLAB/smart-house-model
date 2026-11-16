@@ -13,7 +13,7 @@ Trang web (public/nha-iot.html)  →  /api/devices (Next.js)  →  Firebase /hom
 | `public/nha-iot.html` | Trang điều khiển + mô hình 3D (mô phỏng, đi vào nhà, mạch thật qua API) |
 | `src/app/api/devices/` | API: `GET /api/devices`, `GET` và `POST /api/devices/{id}` |
 | `src/app/api/session/` | Đăng nhập trang web: `POST` (email, mật khẩu), `GET` (đang đăng nhập là ai), `DELETE` (đăng xuất) |
-| `src/lib/devices.js` | Danh mục thiết bị (10 thiết bị thật, 3 thiết bị chỉ có khi mô phỏng), đường dẫn Firebase, cách dịch lệnh |
+| `src/lib/devices.js` | Danh mục thiết bị (9 thiết bị thật, 3 thiết bị chỉ có khi mô phỏng), đường dẫn Firebase, cách dịch lệnh |
 | `src/lib/firebaseAdmin.js` | Server đọc/ghi Firebase bằng tài khoản email/mật khẩu hoặc khóa service account trong biến môi trường |
 | `src/lib/apiAuth.js` | Chỉ cho người đã đăng nhập hoặc script có khóa API dùng API, CORS |
 | `src/lib/session.js` | Phiên đăng nhập: cookie ký HMAC, nhớ 7 ngày |
@@ -58,7 +58,7 @@ Sau này đổi router hoặc mật khẩu Wi-Fi thì các mạch không vào đ
 
 | Firmware | Mạch | Thiết bị |
 |---|---|---|
-| `cua_chinh` | ESP8266 | Tầng 1: cửa chính (bàn phím 4x4, LCD, động cơ cửa), quạt tầng 1 (relay `light_room_1`) |
+| `cua_chinh` | ESP8266 | Tầng 1: cửa chính (bàn phím 4x4, LCD, động cơ cửa), đèn tầng 1 (relay `light_room_1`) |
 | `bao_trom_va_do_am` | ESP8266 | Tầng 1, ở nhà xe: báo trộm hồng ngoại, còi, DHT11, LCD 16x2 |
 | `baochay_denl2` | ESP8266 | Tầng 2: cảm biến khói MQ-2, còi, đèn LED, nút nhấn |
 | `van_tay` | ESP8266 | Tầng 3: khóa cửa vân tay |
@@ -66,7 +66,7 @@ Sau này đổi router hoặc mật khẩu Wi-Fi thì các mạch không vào đ
 | `led_oled` | ESP8266 | Màn hình chào OLED (không nối mạng) |
 | `nha_xe_moi_nhat` | ESP8266 | Cửa cuốn nhà xe, bản cũ trên mạch riêng. Nay nằm trong `floor_1_Duy` |
 | `den_wc` | ESP8266 | 2 đèn WC tự bật bằng PIR. **Nhà thật không lắp**, trên web chỉ có khi mô phỏng |
-| `floor_1_Duy` | ESP8266 | Bản gộp tầng 1 trên một mạch, thay cho `cua_chinh` + `nha_xe_moi_nhat` + phần DHT11 của `bao_trom_va_do_am`: cửa chính (bàn phím, LCD, servo, còi), cửa garage và quạt (một L298N), 2 dây LED (`led_strip_1`, `led_strip_2`), DHT11 + LCD thứ hai. Sơ đồ chân ở đầu file. Không chạy chung với các mạch nó thay thế |
+| `floor_1_Duy` | ESP8266 | Bản gộp tầng 1 trên một mạch, thay cho `cua_chinh` + `nha_xe_moi_nhat` + phần DHT11 của `bao_trom_va_do_am`: cửa chính (bàn phím, LCD, servo, còi), cửa garage và quạt (một L298N), đèn tầng 1 gồm 2 dây LED (`light_room_1`, false = sáng), quạt (`fan_room_1`, true = chạy), DHT11 + LCD thứ hai. Sơ đồ chân ở đầu file. Không chạy chung với các mạch nó thay thế |
 
 Đèn tầng 3 (`light_room_3` trong `van_tay`) cũng chỉ có khi mô phỏng. Thiết bị chỉ có khi mô phỏng được đánh dấu `sim: true` trong `src/lib/devices.js`: API, app điện thoại và trang web ở chế độ mạch thật bỏ qua chúng. Lắp thêm thiết bị nào thì bỏ `sim: true` của nó (ở cả `src/lib/devices.js` và bản sao trong `public/nha-iot.html`).
 
