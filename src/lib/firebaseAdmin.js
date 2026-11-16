@@ -32,23 +32,36 @@ function adminDb() {
   return database;
 }
 
-// ==== Cách 2: email + mật khẩu ====
-let session = null;  // { idToken, expiresAt }
-
-async function idToken() {
-  if (session && Date.now() < session.expiresAt - 60000) return session.idToken;
+/**
+ * Đăng nhập Firebase Authentication bằng email/mật khẩu qua REST. Trả về { idToken, expiresIn, email }.
+ * Lỗi mang status: 401 sai tài khoản, 429 sai quá nhiều lần, 502 lỗi khác; code là mã lỗi của Firebase.
+ */
+export async function signInWithPassword(email, password) {
   const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${API_KEY}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: process.env.FIREBASE_EMAIL, password: process.env.FIREBASE_PASSWORD, returnSecureToken: true }),
+    body: JSON.stringify({ email, password, returnSecureToken: true }),
     cache: "no-store",
   });
   const j = await r.json().catch(() => null);
   if (!r.ok || !j || !j.idToken) {
     const code = (j && j.error && j.error.message) || "HTTP " + r.status;
-    throw fail(/INVALID_LOGIN|INVALID_PASSWORD|EMAIL_NOT_FOUND|INVALID_EMAIL/.test(code)
-      ? "Sai FIREBASE_EMAIL hoặc FIREBASE_PASSWORD trong biến môi trường."
-      : "Không đăng nhập được Firebase: " + code);
+    const status = /TOO_MANY_ATTEMPTS/.test(code) ? 429 : /INVALID_LOGIN|INVALID_PASSWORD|EMAIL_NOT_FOUND|INVALID_EMAIL|USER_DISABLED/.test(code) ? 401 : 502;
+    throw Object.assign(fail(code, status), { code });
+  }
+  return j;
+}
+
+// ==== Cách 2: email + mật khẩu ====
+let session = null;  // { idToken, expiresAt }
+
+async function idToken() {
+  if (session && Date.now() < session.expiresAt - 60000) return session.idToken;
+  let j;
+  try {
+    j = await signInWithPassword(process.env.FIREBASE_EMAIL, process.env.FIREBASE_PASSWORD);
+  } catch (e) {
+    throw fail(e.status === 401 ? "Sai FIREBASE_EMAIL hoặc FIREBASE_PASSWORD trong biến môi trường." : "Không đăng nhập được Firebase: " + e.message);
   }
   session = { idToken: j.idToken, expiresAt: Date.now() + Number(j.expiresIn || 3600) * 1000 };
   return session.idToken;

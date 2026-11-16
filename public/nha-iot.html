@@ -269,20 +269,21 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
         <button type="button" id="mode-sim" aria-pressed="true">Mô phỏng</button>
         <button type="button" id="mode-live" aria-pressed="false">Mạch thật</button>
       </div>
+      <button class="btn" type="button" id="logout-btn" hidden>Đăng xuất</button>
     </div>
   </header>
 
   <section class="connect" id="connect" hidden>
     <div class="connect-head">
-      <h2>Kết nối mạch thật</h2>
+      <h2>Đăng nhập để dùng mạch thật</h2>
     </div>
-    <p>Trang gọi API <code>/api/devices</code> của project Next.js (chạy bằng <code>npm run dev</code> hoặc trên Vercel). Tài khoản Firebase nằm trong biến môi trường của server (<code>FIREBASE_EMAIL</code>, <code>FIREBASE_PASSWORD</code>), không nhập trên trang. Mở trang từ chính project đó thì để trống địa chỉ.</p>
+    <p>Dùng tài khoản được cấp cho nhà Smart House. Đăng nhập một lần, trình duyệt này nhớ trong 7 ngày.</p>
     <form id="connect-form" class="form-grid" autocomplete="on">
-      <div class="field"><label for="f-base">Địa chỉ API</label><input id="f-base" class="mono" placeholder="Để trống: cùng địa chỉ với trang" autocomplete="url"></div>
-      <div class="field"><label for="f-key">Khóa API</label><input id="f-key" type="password" placeholder="Bỏ trống nếu chưa đặt SMART_HOME_API_KEY" autocomplete="off"></div>
+      <div class="field"><label for="f-email">Email</label><input id="f-email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="f-pass">Mật khẩu</label><input id="f-pass" type="password" autocomplete="current-password" required></div>
     </form>
     <div class="form-actions">
-      <button class="btn primary" type="submit" form="connect-form" id="connect-btn">Kết nối</button>
+      <button class="btn primary" type="submit" form="connect-form" id="connect-btn">Đăng nhập</button>
       <button class="btn" type="button" id="connect-cancel">Quay lại mô phỏng</button>
       <p class="err" id="connect-err" role="alert"></p>
     </div>
@@ -893,23 +894,20 @@ const Sim = {
   }
 };
 
-/* ===== Chế độ mạch thật qua API riêng (project Next.js) ===== */
+/* ===== Chế độ mạch thật: API của chính project (Next.js), cùng địa chỉ với trang ===== */
+// Server giữ tài khoản Firebase của mạch. Người dùng đăng nhập bằng tài khoản của mình (/api/session),
+// trình duyệt nhớ bằng cookie; trang không giữ mật khẩu hay khóa nào.
+let user = null;  // email người đang đăng nhập
 const Api = {
-  base: '', key: '', host: '', iv: null, busy: false, fails: 0, pending: {},
+  iv: null, busy: false, fails: 0, pending: {},
   async req(path, opts){
     const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 10000);
     try {
-      const headers = Object.assign({ 'Content-Type': 'application/json' }, this.key ? { 'x-api-key': this.key } : {});
-      const r = await fetch(this.base + path, Object.assign({ cache: 'no-store', signal: ctrl.signal, headers }, opts || {}));
+      const r = await fetch(path, Object.assign({ cache: 'no-store', signal: ctrl.signal, headers: { 'Content-Type': 'application/json' } }, opts || {}));
       let j = null; try { j = await r.json(); } catch (e) {}
       if (!r.ok || !j || j.ok === false) { const err = new Error((j && j.error) || ('Máy chủ trả về mã ' + r.status)); err.status = r.status; throw err; }
       return j;
     } finally { clearTimeout(t); }
-  },
-  async connect(base, key){
-    this.stop(); this.base = base.replace(/\/+$/, ''); this.key = key;
-    this.host = this.base ? this.base.replace(/^https?:\/\//, '') : location.host;
-    return this.req('/api/devices');
   },
   start(){ this.stop(); this.fails = 0; this.iv = setInterval(() => this.poll(), 1500); },
   stop(){ clearInterval(this.iv); this.iv = null; },
@@ -918,25 +916,32 @@ const Api = {
     if (this.busy || document.hidden) return; this.busy = true;
     try {
       const j = await this.req('/api/devices');
-      if (backend === Api) { if (this.fails > 1) log('Kết nối API trở lại', 'ok'); this.fails = 0; setPill('live', 'API · ' + this.host); onTree(j.home || {}); }
+      if (backend === Api) { if (this.fails > 1) log('Kết nối mạch thật trở lại', 'ok'); this.fails = 0; setPill('live', liveLabel()); onTree(j.home || {}); }
     } catch (e) {
+      if (backend !== Api) return;
+      if (e.status === 401) return needLogin('Phiên đăng nhập đã hết hạn. Đăng nhập lại.');
       this.fails++;
-      if (backend === Api) { setPill('off', this.fails > 1 ? 'Mất kết nối API, đang thử lại…' : 'API chậm phản hồi…'); if (this.fails === 2) log('Không gọi được API: ' + explainApi(e), 'danger'); }
+      setPill('off', this.fails > 1 ? 'Mất kết nối, đang thử lại…' : 'Máy chủ chậm phản hồi…');
+      if (this.fails === 2) log('Không đọc được mạch thật: ' + explainApi(e), 'danger');
     } finally { this.busy = false; }
   },
   async command(id, action){
     if (id === 'garage') { this.pending.garage = true; onTree(tree); setTimeout(() => { this.pending.garage = false; onTree(tree); }, 2500); }
     try { const j = await this.req('/api/devices/' + encodeURIComponent(id), { method: 'POST', body: JSON.stringify({ action }) }); if (backend === Api && j.home) onTree(j.home); }
-    catch (e) { log('API từ chối lệnh "' + action + '" cho ' + id + ': ' + explainApi(e), 'danger'); }
+    catch (e) {
+      if (e.status === 401) return needLogin('Phiên đăng nhập đã hết hạn. Đăng nhập lại.');
+      log('Không gửi được lệnh "' + action + '" cho ' + id + ': ' + explainApi(e), 'danger');
+    }
   }
 };
 function explainApi(e){
-  if (e && e.name === 'AbortError') return 'API không phản hồi sau 10 giây. Kiểm tra project Next.js còn chạy không.';
-  if (e && e.status === 401) return 'Cần khóa API: nhập đúng giá trị SMART_HOME_API_KEY (biến môi trường trên Vercel hoặc trong .env).';
-  if (e && e.status === 404 && !/thiết bị/.test(e.message)) return 'Không thấy route /api/devices ở địa chỉ này. Kiểm tra đã chép các file API vào project và địa chỉ đúng cổng.';
-  if (e && e.name === 'TypeError') return 'Không gọi được API tại ' + (Api.base || location.origin) + '. Kiểm tra project Next.js đang chạy (npm run dev) và địa chỉ đúng. Nếu bạn đang mở trang trong Claude, trang này bị chặn kết nối ra ngoài: hãy mở file HTML bằng Chrome.';
+  if (e && e.name === 'AbortError') return 'Máy chủ không phản hồi sau 10 giây. Thử lại sau.';
+  if (e && e.status === 401) return 'Cần đăng nhập.';
+  if (e && e.status === 404 && !/thiết bị/.test(e.message)) return 'Không thấy API /api/devices. Mạch thật chỉ dùng được khi mở trang từ project (npm run dev hoặc Vercel).';
+  if (e && e.name === 'TypeError') return 'Không gọi được máy chủ. Kiểm tra Internet. Mở file HTML trên máy thì không dùng được mạch thật: hãy mở trang từ project (npm run dev hoặc Vercel).';
   return (e && e.message) || 'Lỗi không rõ';
 }
+const liveLabel = () => 'Mạch thật' + (user ? ' · ' + user : '');
 
 /* ===== Giao diện chuyển chế độ ===== */
 function setPill(s, text){ $('#pill').dataset.s = s; $('#pill-text').textContent = text; }
@@ -950,47 +955,67 @@ function goSim(){
   $('#sim-card').hidden = false; $('#connect').hidden = true;
   store.set('iot3-mode', 'sim');
 }
-// Trang do chính project Next.js phục vụ (tại "/") thì API cùng địa chỉ; mở file trên máy thì dùng localhost
-const sameOrigin = /^https?:$/.test(location.protocol);
-function showConnect(){
+// Khung dưới thanh trên cùng: form đăng nhập (login = true), hoặc chỉ báo lỗi kèm nút thử lại
+function showBox(msg, login){
   setSeg('live'); $('#connect').hidden = false;
-  const s = store.get('iot3-conn') || {};
-  $('#f-base').value = $('#f-base').value || (s.base != null ? s.base : (sameOrigin ? '' : 'http://localhost:3000'));
-  ($('#f-base').value || sameOrigin ? $('#f-key') : $('#f-base')).focus();
+  $('#connect-form').hidden = !login;
+  $('#connect-btn').textContent = login ? 'Đăng nhập' : 'Thử lại';
+  $('#connect-err').textContent = msg || '';
+  if (login) ($('#f-email').value ? $('#f-pass') : $('#f-email')).focus();
+}
+function needLogin(msg){
+  Api.stop(); user = null; $('#logout-btn').hidden = true;
+  backend = Sim; Sim.start(); setPill('sim', 'Chế độ mô phỏng'); $('#sim-card').hidden = false;
+  showBox(msg, true);
 }
 
-$('#mode-sim').addEventListener('click', goSim);
-// Mạch thật: nối ngay qua API cùng địa chỉ. Chỉ hiện ô nhập khi cần khóa API hoặc khi không nối được.
-$('#mode-live').addEventListener('click', () => {
-  if (backend === Api) return;
-  if (sameOrigin && !$('#f-base').value.trim()) connectApi();
-  else showConnect();
-});
-$('#connect-cancel').addEventListener('click', goSim);
-document.querySelectorAll('[data-sim]').forEach(b => b.addEventListener('click', () => { if (backend === Sim) Sim.act(b.dataset.sim); }));
-
-$('#connect-form').addEventListener('submit', ev => { ev.preventDefault(); connectApi(); });
-
-async function connectApi(){
-  const base = $('#f-base').value.trim(), key = $('#f-key').value;
-  store.set('iot3-conn', { base });
+async function goLive(){
   $('#connect-btn').disabled = true; $('#connect-err').textContent = '';
-  Sim.stop(); backend = null; setPill('wait', 'Đang gọi API…'); setSeg('live');
+  Sim.stop(); backend = null; setPill('wait', 'Đang kết nối…'); setSeg('live');
   try {
-    const j = await Api.connect(base, key);
+    const j = await Api.req('/api/devices');
     backend = Api; prev = null; hist.length = 0; drawSpark(); Energy.newSource();
     onTree(j.home || {});
     Api.start();
-    $('#connect').hidden = true; $('#sim-card').hidden = true; setSeg('live');
-    setPill('live', 'API · ' + Api.host);
-    log('Đã kết nối API ' + Api.host + ' (' + (j.devices ? j.devices.length : 0) + ' thiết bị)', 'ok');
+    $('#connect').hidden = true; $('#sim-card').hidden = true;
+    if (!user) { try { user = (await Api.req('/api/session')).email; } catch (e) {} }
+    $('#logout-btn').hidden = !user;
+    setPill('live', liveLabel());
+    log('Đã kết nối mạch thật' + (user ? ' (' + user + ')' : ''), 'ok');
   } catch (e) {
     Api.stop();
-    showConnect();
-    $('#connect-err').textContent = explainApi(e);
-    backend = Sim; Sim.start(); setPill('sim', 'Chế độ mô phỏng');
+    backend = Sim; Sim.start(); setPill('sim', 'Chế độ mô phỏng'); $('#sim-card').hidden = false;
+    if (e.status === 401) showBox('', true);
+    else showBox(explainApi(e), false);
   } finally { $('#connect-btn').disabled = false; }
 }
+
+async function login(){
+  const email = $('#f-email').value.trim(), password = $('#f-pass').value;
+  if (!email || !password) { $('#connect-err').textContent = 'Nhập email và mật khẩu.'; return; }
+  $('#connect-btn').disabled = true; $('#connect-err').textContent = 'Đang đăng nhập…';
+  try {
+    user = (await Api.req('/api/session', { method: 'POST', body: JSON.stringify({ email, password }) })).email;
+    $('#f-pass').value = '';
+    await goLive();
+  } catch (e) {
+    $('#connect-err').textContent = e.status === 401 || e.status === 429 || e.status === 400 ? e.message : explainApi(e);
+  } finally { $('#connect-btn').disabled = false; }
+}
+
+$('#mode-sim').addEventListener('click', goSim);
+// Mạch thật: đã đăng nhập thì nối luôn, chưa thì hiện form đăng nhập
+$('#mode-live').addEventListener('click', () => { if (backend !== Api) goLive(); });
+$('#connect-cancel').addEventListener('click', goSim);
+$('#connect-form').addEventListener('submit', ev => { ev.preventDefault(); login(); });
+$('#connect-btn').addEventListener('click', ev => { if ($('#connect-form').hidden) { ev.preventDefault(); goLive(); } });
+$('#logout-btn').addEventListener('click', async () => {
+  try { await Api.req('/api/session', { method: 'DELETE' }); } catch (e) {}
+  user = null; $('#logout-btn').hidden = true;
+  goSim();
+  log('Đã đăng xuất', 'muted');
+});
+document.querySelectorAll('[data-sim]').forEach(b => b.addEventListener('click', () => { if (backend === Sim) Sim.act(b.dataset.sim); }));
 
 /* Bảng tra cứu API */
 (function(){

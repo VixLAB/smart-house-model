@@ -12,9 +12,11 @@ Trang web (public/nha-iot.html)  →  /api/devices (Next.js)  →  Firebase /hom
 |---|---|
 | `public/nha-iot.html` | Trang điều khiển + mô hình 3D (mô phỏng, đi vào nhà, mạch thật qua API) |
 | `src/app/api/devices/` | API: `GET /api/devices`, `GET` và `POST /api/devices/{id}` |
+| `src/app/api/session/` | Đăng nhập trang web: `POST` (email, mật khẩu), `GET` (đang đăng nhập là ai), `DELETE` (đăng xuất) |
 | `src/lib/devices.js` | Danh mục thiết bị (10 thiết bị thật, 3 thiết bị chỉ có khi mô phỏng), đường dẫn Firebase, cách dịch lệnh |
 | `src/lib/firebaseAdmin.js` | Server đọc/ghi Firebase bằng tài khoản email/mật khẩu hoặc khóa service account trong biến môi trường |
-| `src/lib/apiAuth.js` | Kiểm tra khóa API, CORS |
+| `src/lib/apiAuth.js` | Chỉ cho người đã đăng nhập hoặc script có khóa API dùng API, CORS |
+| `src/lib/session.js` | Phiên đăng nhập: cookie ký HMAC, nhớ 7 ngày |
 | `.env` | Biến môi trường khi chạy trên máy, xem [Biến môi trường](#biến-môi-trường). **Bí mật, không chia sẻ, không đưa lên GitHub** |
 | `firmware/` | Code Arduino cho các mạch (đã trỏ sang project mới) |
 
@@ -27,9 +29,9 @@ npm install
 npm run dev
 ```
 
-Mở http://localhost:3000: trang chủ chính là trang điều khiển (file `public/nha-iot.html`, phục vụ tại `/` nhờ `next.config.mjs`; link cũ `/nha-iot.html` tự về `/`). Bấm **Mạch thật**: trang tự nối qua API của chính nó, không hỏi email hay mật khẩu. Nếu đã đặt `SMART_HOME_API_KEY` thì trang hỏi khóa này.
+Mở http://localhost:3000: trang chủ chính là trang điều khiển (file `public/nha-iot.html`, phục vụ tại `/` nhờ `next.config.mjs`; link cũ `/nha-iot.html` tự về `/`). Bấm **Mạch thật** rồi đăng nhập bằng một tài khoản trong Firebase → Authentication của project (tự đăng ký đã tắt, nên tài khoản do người quản lý tạo cho từng người). Trình duyệt nhớ đăng nhập 7 ngày; nút **Đăng xuất** ở trên cùng. Tài khoản của mạch mà server dùng để đọc/ghi Firebase vẫn chỉ nằm trong biến môi trường.
 
-Kiểm tra nhanh API: mở http://localhost:3000/api/devices. Thấy "Sai hoặc thiếu khóa API" là server đã chạy đúng.
+Kiểm tra nhanh API: mở http://localhost:3000/api/devices. Thấy "Cần đăng nhập để dùng mạch thật" là server đã chạy đúng.
 
 ## Biến môi trường
 
@@ -39,7 +41,8 @@ Kiểm tra nhanh API: mở http://localhost:3000/api/devices. Thấy "Sai hoặc
 |---|---|
 | `FIREBASE_EMAIL` | Email tài khoản Firebase Authentication mà server dùng, vd. tài khoản của các mạch. UID của nó phải có trong Rules |
 | `FIREBASE_PASSWORD` | Mật khẩu tài khoản đó |
-| `SMART_HOME_API_KEY` | Khóa tự đặt (chuỗi dài, ngẫu nhiên). **Nên đặt**: không có khóa thì ai biết địa chỉ trang cũng bật tắt được thiết bị, mở được cửa garage |
+| `SMART_HOME_API_KEY` | Không bắt buộc. Khóa cho script gọi API không qua trang (header `x-api-key`). Trang web dùng đăng nhập, không hỏi khóa này |
+| `SESSION_SECRET` | Không bắt buộc. Chuỗi bí mật dài để ký cookie đăng nhập; chưa đặt thì dùng `SMART_HOME_API_KEY` hoặc `FIREBASE_PASSWORD`. Đổi giá trị thì mọi người phải đăng nhập lại |
 | `FIREBASE_SERVICE_ACCOUNT` | Không bắt buộc. Có thì server dùng khóa service account (JSON trên một dòng) thay cho email/mật khẩu |
 | `FIREBASE_API_KEY`, `FIREBASE_DATABASE_URL` | Không bắt buộc. Mặc định là của project `smart-house-fcd4f` |
 
