@@ -556,26 +556,25 @@ function resolveAction(home, id, action, opts) {
 // sim: chỉ có khi mô phỏng (lấy từ API_DEVICES), ẩn khi nối mạch thật
 const DEVICES = {
   3: [
-    { id:'door3', kind:'door', label:'Khóa cửa vân tay', path:'door_status', hint:'Servo mở khóa 2 giây khi quét đúng vân tay' },
+    { id:'door3', kind:'door', label:'Khóa cửa vân tay', path:'door_status' },
     { id:'light3', kind:'light', label:'Đèn tầng 3', path:'light_room_3' }
   ],
   2: [
-    { id:'light2', kind:'light', label:'Đèn LED tầng 2', path:'floor_2/light_room_2', hint:'Đồng bộ với nút nhấn tại phòng' },
+    { id:'light2', kind:'light', label:'Đèn LED tầng 2', path:'floor_2/light_room_2' },
     { id:'smoke', kind:'smoke', label:'Báo cháy (MQ-2, còi)', path:'floor_2/smoke_level_2', detected:'floor_2/smoke_detected_2', mute:'floor_2/buzzer_mute_2' }
   ],
   1: [
-    { id:'light1', kind:'light', label:'Đèn tầng 1 (2 dây LED)', path:'floor_1/light_room_1', invert:true, hint:'Bật cả 2 dây LED. Đảo logic như cũ: false là đèn sáng. Tự bật khi mở cửa chính' },
-    { id:'fan1', kind:'fan', label:'Quạt tầng 1', path:'floor_1/fan_room_1', hint:'Kênh B của L298N: true là quạt chạy' },
-    { id:'door1', kind:'door', label:'Cửa chính', path:'floor_1/door_opened_1', hint:'Động cơ mở cửa 3 giây khi nhập đúng mật khẩu rồi bấm A' },
-    { id:'garage', kind:'garage', label:'Cửa cuốn nhà xe', path:'floor_1/garage/status', cmd:'floor_1/garage/command', hint:'Kênh A của L298N. Tại nhà: nhập mật khẩu rồi bấm B để mở, bấm B để đóng' },
-    { id:'alarm', kind:'alarm', label:'Báo trộm nhà xe (PIR)', path:'floor_1/alarm_enabled_1', trig:'floor_1/alarm_triggered_1', hint:'Cảm biến hồng ngoại, còi và LCD 16x2 ở nhà xe' },
-    { id:'wc1', kind:'auto', label:'Đèn WC 1', path:'floor_1/wc1_light', hint:'Cảm biến PIR, sáng 3 giây' },
-    { id:'wc2', kind:'auto', label:'Đèn WC 2', path:'floor_1/wc2_light', hint:'Cảm biến PIR, sáng 3 giây' }
+    { id:'light1', kind:'light', label:'Đèn tầng 1 (2 dây LED)', path:'floor_1/light_room_1', invert:true },
+    { id:'fan1', kind:'fan', label:'Quạt tầng 1', path:'floor_1/fan_room_1' },
+    { id:'door1', kind:'door', label:'Cửa chính', path:'floor_1/door_opened_1' },
+    { id:'garage', kind:'garage', label:'Cửa cuốn nhà xe', path:'floor_1/garage/status', cmd:'floor_1/garage/command' },
+    { id:'alarm', kind:'alarm', label:'Báo trộm nhà xe (PIR)', path:'floor_1/alarm_enabled_1', trig:'floor_1/alarm_triggered_1' },
+    { id:'wc1', kind:'auto', label:'Đèn WC 1', path:'floor_1/wc1_light' },
+    { id:'wc2', kind:'auto', label:'Đèn WC 2', path:'floor_1/wc2_light' }
   ]
 };
 const ALL = [].concat(DEVICES[1], DEVICES[2], DEVICES[3]);
 ALL.forEach(d => d.sim = !!API_DEVICES[d.id].sim);
-const SIM_NOTE = 'Chỉ có khi mô phỏng, nhà thật không lắp';
 
 let backend = null;  // Sim hoặc Api
 let tree = {};       // bản sao nhánh /home
@@ -594,7 +593,7 @@ function buildTile(d){
   if (d.kind === 'garage') ctrl = `<div class="btns"><button class="btn" type="button" data-cmd="open">Mở</button><button class="btn" type="button" data-cmd="close">Đóng</button></div>`;
   if (d.kind === 'smoke') ctrl = `<div class="meter" aria-hidden="true"><div class="meter-fill"></div><div class="meter-mark" style="left:${(120/1023*100).toFixed(2)}%"></div></div><div class="meter-cap"><span class="lvl">0 / 1023</span><span>ngưỡng 120</span></div>` + sw('Còi báo khói');
   const paths = [d.path, d.cmd, d.trig, d.detected, d.mute].filter(Boolean).map(p => 'home/' + p).join('\n');
-  el.innerHTML = `<header><span class="lamp" aria-hidden="true"></span><h3>${d.label}</h3>${d.sim ? '<span class="sim-tag">Giả lập</span>' : ''}</header><p class="state" aria-live="polite">Chưa có dữ liệu</p>${d.hint ? `<p class="hint">${d.hint}</p>` : ''}${d.sim ? `<p class="hint">${SIM_NOTE}.</p>` : ''}<div class="ctrl">${ctrl}</div><code class="path"></code>`;
+  el.innerHTML = `<header><span class="lamp" aria-hidden="true"></span><h3>${d.label}</h3>${d.sim ? '<span class="sim-tag">Giả lập</span>' : ''}</header><p class="state" aria-live="polite">Chưa có dữ liệu</p><div class="ctrl">${ctrl}</div><code class="path"></code>`;
   el.querySelector('.path').textContent = d.id + ' · ' + paths.split('\n')[0] + (paths.includes('\n') ? ' …' : '');
   el.querySelector('.path').title = paths;
 
@@ -609,6 +608,13 @@ function buildTile(d){
 [1,2,3].forEach(f => DEVICES[f].forEach(d => $('#floor-' + f).appendChild(buildTile(d))));
 
 function isOn(d){ const v = get(tree, d.path); if (v == null) return null; return d.invert ? !v : !!v; }
+
+// Cửa cuốn: lệnh đã gửi (command) mà mạch chưa chạy xong và báo lại (status) thì hiện chữ chờ, không thì rỗng
+function garageWaiting(status, cmd){
+  if (cmd === 'open' && status !== 'open') return 'Chờ cửa đang mở…';
+  if (cmd === 'close' && status !== 'closed') return 'Chờ cửa đang đóng…';
+  return '';
+}
 
 function updateTile(d){
   const el = d.el, st = el.querySelector('.state');
@@ -633,11 +639,13 @@ function updateTile(d){
   }
   if (d.kind === 'garage') {
     const status = get(tree, d.path), cmd = get(tree, d.cmd);
-    const pending = backend && backend.pending && backend.pending.garage;
+    const pending = backend && backend.pending && backend.pending.garage;  // đang gửi lệnh
+    const wait = garageWaiting(status, cmd);
     el.classList.toggle('open', status === 'open');
-    st.textContent = pending ? (cmd === 'open' ? 'Đang mở…' : 'Đang đóng…') : status === 'open' ? 'Đang mở' : status === 'closed' ? 'Đã đóng' : 'Chưa có dữ liệu';
-    el.querySelector('[data-cmd="open"]').disabled = !!pending || status === 'open';
-    el.querySelector('[data-cmd="close"]').disabled = !!pending || status === 'closed';
+    st.textContent = wait || (status === 'open' ? 'Đang mở' : status === 'closed' ? 'Đã đóng' : 'Chưa có dữ liệu');
+    // Đang chờ thì vẫn bấm được nút ngược lại, để hủy lệnh vừa gửi
+    el.querySelector('[data-cmd="open"]').disabled = !!pending || (wait ? cmd === 'open' : status === 'open');
+    el.querySelector('[data-cmd="close"]').disabled = !!pending || (wait ? cmd === 'close' : status === 'closed');
   }
   if (d.kind === 'alarm') {
     const en = get(tree, d.path) === true, trig = get(tree, d.trig) === true;
@@ -1320,7 +1328,7 @@ function buildModel(){
   add(1, LIGHTS.light2.hits.concat(LIGHTS.light2.strips), lightTip('light2', 'Đèn LED tầng 2'), toggleLight('light2'));
   add(2, LIGHTS.light3.hits.concat(LIGHTS.light3.strips), ...simDev('Đèn tầng 3', lightTip('light3', 'Đèn tầng 3 · giả lập'), toggleLight('light3')));
   ['wc1', 'wc2'].forEach((id, i) => add(0, LIGHTS[id].hits.concat(LIGHTS[id].strips), ...simDev('Đèn WC ' + (i + 1), () => ['Đèn WC ' + (i + 1) + ' · giả lập', onOff(isOn(D[id])) + ' · bấm để giả lập có người'], () => Sim.act(id))));
-  add(0, [gDoor], () => { const s = get(tree, D.garage.path); return ['Cửa cuốn nhà xe', (s === 'open' ? 'đang mở' : 'đã đóng') + ' · bấm để ' + (s === 'open' ? 'đóng' : 'mở')]; },
+  add(0, [gDoor], () => { const s = get(tree, D.garage.path), w = garageWaiting(s, get(tree, D.garage.cmd)); return ['Cửa cuốn nhà xe', w ? w.toLowerCase() : (s === 'open' ? 'đang mở' : 'đã đóng') + ' · bấm để ' + (s === 'open' ? 'đóng' : 'mở')]; },
       () => { if (backend && backend.pending && backend.pending.garage) return; command('garage', 'toggle'); });
   add(0, [pir, buzz1], () => { const en = get(tree, D.alarm.path) === true; return ['Báo trộm nhà xe · PIR và còi', (en ? 'đang canh gác' : 'đã tắt') + ' · bấm để ' + (en ? 'tắt' : 'bật')]; }, () => command('alarm', 'toggle'));
   add(0, [lcd, dht], () => ['LCD 16x2 · DHT11 (nhà xe)', 'Nhiệt độ ' + (get(tree, 'floor_1/temperature_1') ?? '—') + '°C · độ ẩm ' + (get(tree, 'floor_1/humidity_1') ?? '—') + '%'], () => {});
@@ -1453,7 +1461,7 @@ function buildModel(){
       case 'fan': return { text: st.on == null ? 'chưa có dữ liệu' : st.on ? 'Đang chạy' : 'Tắt', cls: st.on ? 'on' : '', on: st.on === true };
       case 'auto': return { text: st.on ? 'Sáng (có người)' : 'Tắt', cls: st.on ? 'on' : '', on: st.on === true };
       case 'door': return { text: st.open ? 'Đang mở' : 'Đã đóng', cls: st.open ? 'open' : '' };
-      case 'garage': return { text: st.status === 'open' ? 'Đang mở' : st.status === 'closed' ? 'Đã đóng' : 'chưa có dữ liệu', cls: st.status === 'open' ? 'open' : '', open: st.status === 'open' };
+      case 'garage': return { text: garageWaiting(st.status, st.command) || (st.status === 'open' ? 'Đang mở' : st.status === 'closed' ? 'Đã đóng' : 'chưa có dữ liệu'), cls: st.status === 'open' ? 'open' : '', open: st.status === 'open' };
       case 'alarm': return { text: st.triggered ? 'CÓ CHUYỂN ĐỘNG' : st.enabled ? 'Canh gác' : 'Đã tắt', cls: st.triggered ? 'alert' : st.enabled ? 'open' : '', on: st.enabled };
       case 'smoke': return { text: st.detected ? 'CÓ KHÓI · ' + st.level : 'Bình thường · ' + (st.level ?? '—'), cls: st.detected ? 'alert' : '', on: !st.buzzerMuted };
       case 'sensor': return { text: (typeof st.temperature === 'number' ? st.temperature.toFixed(1) : '—') + '°C · ' + (typeof st.humidity === 'number' ? Math.round(st.humidity) : '—') + '%', cls: '' };

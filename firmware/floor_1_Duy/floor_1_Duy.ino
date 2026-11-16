@@ -23,8 +23,8 @@
  * NodeMCU; mọi nguồn nối chung GND. MOSFET phải là loại logic-level (IRLZ44N, AO3400...).
  *
  * Firebase, tính từ /home/floor_1 (một stream cho cả nhánh, ESP8266 không đủ RAM cho nhiều stream):
- *   light_room_1     quạt. Đảo logic giống firmware cũ: false = quạt chạy (web, app dùng quy ước này)
- *   led_strip_1, led_strip_2   dây LED: true = sáng
+ *   light_room_1     đèn tầng 1, bật/tắt cả 2 dây LED. Đảo logic như firmware cũ: false = sáng
+ *   fan_room_1       quạt: true = chạy
  *   garage/command   lệnh "open" / "close" từ web, app. garage/status mạch ghi "open" / "closed"
  *   door_opened_1    true trong 3 giây cửa chính mở
  *   temperature_1, humidity_1  nhiệt độ, độ ẩm
@@ -120,7 +120,7 @@ unsigned long doorCloseAt = 0;
 unsigned long lcdDoorRestoreAt = 0;  // 0: LCD cửa đang hiện lời nhắc, không có thông báo chờ xóa
 
 bool fanOn = false;
-bool ledOn[2] = {false, false};
+bool lightOn = false;  // 2 dây LED bật/tắt cùng nhau
 
 bool garageRunning = false;
 unsigned long garageStart = 0;
@@ -218,11 +218,12 @@ void setFan(bool on) {
   Serial.println(on ? F("Quat: BAT") : F("Quat: TAT"));
 }
 
-void setLed(uint8_t i, bool on) {
-  if (on == ledOn[i]) return;
-  ledOn[i] = on;
-  digitalWrite(i == 0 ? LED1_PIN : LED2_PIN, on ? HIGH : LOW);
-  Serial.printf("Den LED %u: %s\n", i + 1, on ? "BAT" : "TAT");
+void setLights(bool on) {
+  if (on == lightOn) return;
+  lightOn = on;
+  digitalWrite(LED1_PIN, on ? HIGH : LOW);
+  digitalWrite(LED2_PIN, on ? HIGH : LOW);
+  Serial.println(on ? F("Den tang 1: BAT") : F("Den tang 1: TAT"));
 }
 
 // ==== Nhận lệnh từ stream ====
@@ -235,11 +236,9 @@ String unquote(const String &s) {
 void applyValue(const String &path, const String &value) {
   bool isBool = value == "true" || value == "false";
   if (path == "light_room_1" && isBool) {
-    setFan(value == "false");  // đảo logic: false = quạt chạy
-  } else if (path == "led_strip_1" && isBool) {
-    setLed(0, value == "true");
-  } else if (path == "led_strip_2" && isBool) {
-    setLed(1, value == "true");
+    setLights(value == "false");  // đảo logic: false = đèn sáng
+  } else if (path == "fan_room_1" && isBool) {
+    setFan(value == "true");
   } else if (path == "garage/command" && (value == "open" || value == "close")) {
     pendingCommand = value;
   } else if (path == "garage/status" && lastCommand.length() == 0 && !garageRunning) {
@@ -251,7 +250,7 @@ void applyValue(const String &path, const String &value) {
 }
 
 // Các giá trị mạch cần nghe, tính từ /home/floor_1
-const char *const WATCHED[] = {"light_room_1", "led_strip_1", "led_strip_2", "garage/command", "garage/status"};
+const char *const WATCHED[] = {"light_room_1", "fan_room_1", "garage/command", "garage/status"};
 
 // Sự kiện dạng JSON: ảnh cả nhánh lúc mở stream (base rỗng), hoặc nhiều giá trị đổi cùng lúc tại base.
 // Lấy từng giá trị cần nghe bằng đường dẫn con. Không dựng lại đường dẫn bằng iterator của FirebaseJson:
@@ -324,12 +323,10 @@ void openDoor() {
   beep(300);
 
   // Vào nhà thì bật đèn tầng 1, như cua_chinh bật đèn khi mở cửa
-  setLed(0, true);
-  setLed(1, true);
+  setLights(true);
   FirebaseJson json;
   json.set("door_opened_1", true);
-  json.set("led_strip_1", true);
-  json.set("led_strip_2", true);
+  json.set("light_room_1", false);  // false = đèn sáng
   writeFloor(json);
 }
 
