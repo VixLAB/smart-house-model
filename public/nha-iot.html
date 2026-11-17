@@ -224,6 +224,8 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
 @media (max-width:520px){.m-elev,.m-view{font-size:0;gap:0;padding:4px}}
 .m-elev{position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 8px 6px 12px;font-size:.8rem}
 .m-elev .seg button{padding:4px 11px;font-family:var(--font-mono);font-size:.8rem}
+.m-elev .elev-note{font-size:.68rem;color:var(--muted)}
+@media (max-width:760px){.m-elev .elev-note{display:none}}
 .m-msg{position:absolute;left:50%;top:12px;transform:translateX(-50%);margin:0;max-width:calc(100% - 24px);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:.82rem;text-align:center}
 .m-msg:empty{display:none}
 .foot{color:var(--muted);font-size:.8rem;max-width:80ch;margin:0}
@@ -330,6 +332,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
             <button type="button" data-elev="2" aria-pressed="false">2</button>
             <button type="button" data-elev="3" aria-pressed="false">3</button>
           </div>
+          <small class="elev-note">Mạch thật: ghi lệnh lên Firebase, chưa điều khiển motor</small>
         </div>
       </div>
     </section>
@@ -459,6 +462,7 @@ const API_DEVICES = {
   wc1:    { floor: 1, kind: 'auto', label: 'Đèn WC 1', path: 'floor_1/wc1_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   wc2:    { floor: 1, kind: 'auto', label: 'Đèn WC 2', path: 'floor_1/wc2_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   light3: { floor: 3, kind: 'light', label: 'Đèn tầng 3', path: 'light_room_3', sim: true, source: 'van_tay.ino' },
+  elevator: { floor: 1, kind: 'elevator', label: 'Thang máy (mô phỏng web)', path: 'elevator' },
 };
 
 const ACTIONS = {
@@ -467,6 +471,7 @@ const ACTIONS = {
   alarm: ['on', 'off', 'toggle'],
   smoke: ['mute', 'unmute', 'toggle'],
   garage: ['open', 'close', 'toggle'],
+  elevator: ['call_1', 'call_2', 'call_3', 'arrived_1', 'arrived_2', 'arrived_3'],
 };
 
 class DeviceError extends Error {
@@ -501,6 +506,13 @@ function deviceState(home, id) {
       return { level: typeof level === 'number' ? level : null, detected: v(d.detected) === true, buzzerMuted: v(d.mute) === true, threshold: d.threshold };
     }
     case 'sensor': return { temperature: v(d.path) ?? null, humidity: v(d.humidity) ?? null };
+    case 'elevator': return {
+      currentFloor: v(d.path + '/current_floor') ?? null,
+      targetFloor: v(d.path + '/target_floor') ?? null,
+      status: v(d.path + '/status') ?? null,
+      lastCall: v(d.path + '/last_call') ?? null,
+      lastArrivalAt: v(d.path + '/last_arrival_at') ?? null,
+    };
     default: return {};
   }
 }
@@ -547,6 +559,22 @@ function resolveAction(home, id, action, opts) {
     case 'garage': {
       const cmd = action === 'toggle' ? (st.status === 'open' ? 'close' : 'open') : action;
       return { [d.cmd]: cmd };
+    }
+    case 'elevator': {
+      const floor = Number(action.slice(-1));
+      if (action.startsWith('call_')) {
+        return {
+          [d.path + '/target_floor']: floor,
+          [d.path + '/status']: st.currentFloor === floor ? 'idle' : 'moving',
+          [d.path + '/last_call']: { floor, requested_at: Date.now() },
+        };
+      }
+      return {
+        [d.path + '/current_floor']: floor,
+        [d.path + '/target_floor']: floor,
+        [d.path + '/status']: 'idle',
+        [d.path + '/last_arrival_at']: Date.now(),
+      };
     }
   }
   throw new DeviceError(400, 'Lệnh không hợp lệ.');
@@ -864,7 +892,7 @@ function localCommand(be, id, action){
 /* ===== Chế độ mô phỏng: hành vi bắt chước firmware ===== */
 const Sim = {
   tree: null, iv: null, boost: 0, pending: {},
-  seed(){ return { floor_1:{ light_room_1:true, fan_room_1:false, door_opened_1:false, garage:{ command:'close', status:'closed' }, wc1_light:false, wc2_light:false, temperature_1:29.4, humidity_1:63, alarm_enabled_1:true, alarm_triggered_1:false }, floor_2:{ light_room_2:false, smoke_level_2:42, smoke_detected_2:false, buzzer_mute_2:false }, light_room_3:false, door_status:false, thongbao:'' }; },
+  seed(){ return { floor_1:{ light_room_1:true, fan_room_1:false, door_opened_1:false, garage:{ command:'close', status:'closed' }, wc1_light:false, wc2_light:false, temperature_1:29.4, humidity_1:63, alarm_enabled_1:true, alarm_triggered_1:false }, floor_2:{ light_room_2:false, smoke_level_2:42, smoke_detected_2:false, buzzer_mute_2:false }, elevator:{ current_floor:1, target_floor:1, status:'idle' }, light_room_3:false, door_status:false, thongbao:'' }; },
   start(){ if (!this.tree) this.tree = this.seed(); this.pending = {}; clearInterval(this.iv); this.iv = setInterval(() => this.tick(), 2000); this.emit(); },
   stop(){ clearInterval(this.iv); this.iv = null; },
   emit(){ if (backend === Sim) onTree(clone(this.tree)); },
@@ -1312,6 +1340,7 @@ function buildModel(){
   const cabin = new THREE.Group(); cabin.position.set(px(73), .6, pz(68)); elev.add(cabin);
   B(cabin, 15 * S, 1.15, 13 * S, M.cabin, 0, 0, 0);
   let elevFloor = 1, elevTarget = 1;
+  let elevCallBackend = null;
   labels.push({ f: -1, el: Object.assign(document.createElement('span'), { className: 'm-lbl', textContent: 'Thang máy' }), v: new THREE.Vector3(px(73), EH + .3, pz(68)) });
   labelsEl.appendChild(labels[labels.length - 1].el);
 
@@ -1339,7 +1368,7 @@ function buildModel(){
   add(2, [finger, door3Mesh], () => ['Khóa cửa tầng 3 · cảm biến vân tay', Sm() ? 'bấm để giả lập quét đúng vân tay' : 'quét vân tay trên cảm biến của mạch'], simOnly('finger', 'Cửa tầng 3 chỉ mở bằng vân tay tại mạch.'));
   add(2, [buzz3], () => ['Còi tầng 3', 'bíp khi quét đúng vân tay'], () => {});
   add(1, [beacon], () => { const m = get(tree, D.smoke.mute) === true; return ['Còi báo khói tầng 2', 'còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt')]; }, () => command('smoke', 'toggle'));
-  add(-1, cabin.children, () => ['Thang máy · giả lập', 'nhà thật chạy Arduino UNO riêng (L298N, nút gọi, công tắc hành trình), không nối mạng · dùng nút gọi tầng bên dưới'], () => {});
+  add(-1, cabin.children, () => ['Thang máy · mô phỏng web', 'lệnh được ghi lên Firebase ở chế độ Mạch thật; Arduino UNO hiện chưa nối mạng'], () => {});
 
   /* ===== Âm thanh (tạo bằng Web Audio, không cần file) ===== */
   const Snd = {
@@ -1571,10 +1600,7 @@ function buildModel(){
     setTimeout(() => { showTip(c, ev); clearTimeout(tipT); if (ev.pointerType !== 'mouse') tipT = setTimeout(() => tip.hidden = true, 2200); }, 120);
   });
   document.querySelectorAll('[data-elev]').forEach(b => b.addEventListener('click', () => {
-    if (walk.on && walk.inE && !walk.riding && cabinAt(walk.f)) walk.riding = Number(b.dataset.elev) !== walk.f + 1;
-    elevTarget = Number(b.dataset.elev);
-    document.querySelectorAll('[data-elev]').forEach(x => x.setAttribute('aria-pressed', x === b));
-    if (elevTarget !== elevFloor) log('Gọi thang máy lên tầng ' + elevTarget + ' (mô phỏng)', 'muted');
+    callElevator(Number(b.dataset.elev));
   }));
   let targetY = 1.6;
   function setView(n){
@@ -1634,6 +1660,10 @@ function buildModel(){
   function callElevator(n){
     if (walk.inE && !walk.riding && cabinAt(walk.f) && n !== walk.f + 1) walk.riding = true;
     elevTarget = n; document.querySelectorAll('[data-elev]').forEach(x => x.setAttribute('aria-pressed', Number(x.dataset.elev) === n));
+    if (elevTarget === elevFloor) { command('elevator', 'arrived_' + n); return; }
+    elevCallBackend = backend;
+    command('elevator', 'call_' + n);
+    log('Gọi thang máy lên tầng ' + elevTarget + ' (mô phỏng)', 'muted');
   }
   function blocked(x, z){
     const fy0 = groundAt(walk.f, x, z), lo = fy0 + .08, hi = fy0 + EYE;
@@ -1817,7 +1847,13 @@ function buildModel(){
     const ey = (elevTarget - 1) * (FH + SL) + .6;
     if (Math.abs(cabin.position.y - ey) > .01) {
       cabin.position.y += Math.sign(ey - cabin.position.y) * Math.min(1.2 * dt, Math.abs(ey - cabin.position.y));
-      if (Math.abs(cabin.position.y - ey) <= .01 && elevFloor !== elevTarget) { elevFloor = elevTarget; log('Thang máy đã đến tầng ' + elevFloor, 'muted'); }
+      if (Math.abs(cabin.position.y - ey) <= .01 && elevFloor !== elevTarget) {
+        elevFloor = elevTarget;
+        if (elevCallBackend === Api) Api.command('elevator', 'arrived_' + elevFloor);
+        else if (elevCallBackend === Sim && backend === Sim) Sim.command('elevator', 'arrived_' + elevFloor);
+        elevCallBackend = null;
+        log('Thang máy đã đến tầng ' + elevFloor, 'muted');
+      }
     }
     if (walk.on) walkStep(dt);
     else { controls.target.y = lerp(controls.target.y, targetY, k * .4); controls.update(); }

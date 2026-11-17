@@ -13,7 +13,7 @@ Trang web (public/nha-iot.html)  →  /api/devices (Next.js)  →  Firebase /hom
 | `public/nha-iot.html` | Trang điều khiển + mô hình 3D (mô phỏng, đi vào nhà, mạch thật qua API) |
 | `src/app/api/devices/` | API: `GET /api/devices`, `GET` và `POST /api/devices/{id}` |
 | `src/app/api/session/` | Đăng nhập trang web: `POST` (email, mật khẩu), `GET` (đang đăng nhập là ai), `DELETE` (đăng xuất) |
-| `src/lib/devices.js` | Danh mục thiết bị (9 thiết bị thật, 3 thiết bị chỉ có khi mô phỏng), đường dẫn Firebase, cách dịch lệnh |
+| `src/lib/devices.js` | Danh mục thiết bị, đường dẫn Firebase, cách dịch lệnh |
 | `src/lib/firebaseAdmin.js` | Server đọc/ghi Firebase bằng tài khoản email/mật khẩu hoặc khóa service account trong biến môi trường |
 | `src/lib/apiAuth.js` | Chỉ cho người đã đăng nhập hoặc script có khóa API dùng API, CORS |
 | `src/lib/session.js` | Phiên đăng nhập: cookie ký HMAC, nhớ 7 ngày |
@@ -76,6 +76,7 @@ Sau này đổi router hoặc mật khẩu Wi-Fi thì các mạch không vào đ
 - **Tự đăng ký tài khoản đã tắt** (Authentication → Settings → User actions). API key nằm công khai trong code, nên nếu bật lại thì ai cũng tạo được tài khoản.
 - **Hạn mức gói Spark miễn phí: tải xuống 10 GB/tháng**, tính cả header HTTP và mã hóa. Vì vậy firmware nhận lệnh qua **stream** (giữ một kết nối, chỉ nhận dữ liệu khi giá trị đổi) và chỉ ghi khi giá trị đổi, không đọc/ghi Firebase ở mỗi vòng `loop()`. Khi sửa firmware, giữ nguyên cách này. Theo dõi mức dùng ở Realtime Database → Usage.
 - Trang web ở chế độ API hỏi `/api/devices` mỗi 1,5 giây và tự ngừng khi tab bị ẩn.
+- Nút gọi thang máy trong chế độ **Mạch thật** ghi tầng đích, thời điểm gọi và trạng thái đến vào `/home/elevator`. Cabin trên web vẫn chỉ là mô phỏng; Arduino UNO trong `firmware/thang_may` chưa nối mạng nên các bản ghi Firebase không điều khiển motor.
 
 ## Đưa lên mạng (tùy chọn)
 
