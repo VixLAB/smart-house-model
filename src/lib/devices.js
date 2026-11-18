@@ -18,7 +18,7 @@ export const DEVICES = {
   wc1:    { floor: 1, kind: 'auto', label: 'Đèn WC 1', path: 'floor_1/wc1_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   wc2:    { floor: 1, kind: 'auto', label: 'Đèn WC 2', path: 'floor_1/wc2_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   light3: { floor: 2, kind: 'light', label: 'Đèn tầng 2', path: 'light_room_3', sim: true, source: 'van_tay.ino' },
-  elevator: { floor: 1, kind: 'elevator', label: 'Thang máy (mô phỏng web)', path: 'elevator' },
+  elevator: { floor: 1, kind: 'elevator', label: 'Thang máy', path: 'elevator' },
 };
 
 export const ACTIONS = {

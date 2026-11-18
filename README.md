@@ -76,7 +76,7 @@ Sau này đổi router hoặc mật khẩu Wi-Fi thì các mạch không vào đ
 - **Tự đăng ký tài khoản đã tắt** (Authentication → Settings → User actions). API key nằm công khai trong code, nên nếu bật lại thì ai cũng tạo được tài khoản.
 - **Hạn mức gói Spark miễn phí: tải xuống 10 GB/tháng**, tính cả header HTTP và mã hóa. Vì vậy firmware nhận lệnh qua **stream** (giữ một kết nối, chỉ nhận dữ liệu khi giá trị đổi) và chỉ ghi khi giá trị đổi, không đọc/ghi Firebase ở mỗi vòng `loop()`. Khi sửa firmware, giữ nguyên cách này. Theo dõi mức dùng ở Realtime Database → Usage.
 - Trang web ở chế độ API hỏi `/api/devices` mỗi 1,5 giây và tự ngừng khi tab bị ẩn.
-- Nút gọi thang máy trong chế độ **Mạch thật** ghi tầng đích, thời điểm gọi và trạng thái đến vào `/home/elevator`. Cabin trên web vẫn chỉ là mô phỏng; Arduino UNO trong `firmware/thang_may` chưa nối mạng nên các bản ghi Firebase không điều khiển motor.
+- Thang máy (`/home/elevator`) có hai chế độ. **Mô phỏng**: cabin chạy trên web, web tự ghi lệnh gọi và lúc đến. **Mạch thật**: nút gọi chỉ ghi `target_floor`, `status = "moving"`, `last_call`; mạch thang máy đọc `target_floor`, chạy motor, tới nơi thì ghi `current_floor` = `target_floor` = tầng vừa tới, `status = "idle"`, `last_arrival_at` (giống lệnh `arrived_N` của API). Cabin và giếng thang trên web đi theo `current_floor` do mạch báo. Arduino UNO trong `firmware/thang_may` chưa nối mạng, nên cần một mạch có Wi-Fi làm việc này; chưa có thì ở chế độ Mạch thật cabin đứng yên.
 
 ## Đưa lên mạng (tùy chọn)
 

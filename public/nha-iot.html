@@ -540,7 +540,7 @@ const API_DEVICES = {
   wc1:    { floor: 1, kind: 'auto', label: 'Đèn WC 1', path: 'floor_1/wc1_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   wc2:    { floor: 1, kind: 'auto', label: 'Đèn WC 2', path: 'floor_1/wc2_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   light3: { floor: 2, kind: 'light', label: 'Đèn tầng 2', path: 'light_room_3', sim: true, source: 'van_tay.ino' },
-  elevator: { floor: 1, kind: 'elevator', label: 'Thang máy (mô phỏng web)', path: 'elevator' },
+  elevator: { floor: 1, kind: 'elevator', label: 'Thang máy', path: 'elevator' },
 };
 
 const ACTIONS = {
@@ -1863,8 +1863,16 @@ function buildModel(){
     document.querySelectorAll('[data-view]').forEach(x => x.setAttribute('aria-pressed', Number(x.dataset.view) === f + 1));
   }
   function callElevator(n){
+    // Mạch thật: chỉ gửi lệnh gọi. Mạch thang máy chạy rồi ghi current_floor, cabin đi theo (xem update)
+    if (backend === Api && !walk.on) {
+      command('elevator', 'call_' + n);
+      log('Gọi thang máy tới tầng ' + n, 'muted');
+      return;
+    }
     if (walk.inE && !walk.riding && cabinAt(walk.f) && n !== walk.f + 1) walk.riding = true;
     elevTarget = n; document.querySelectorAll('[data-elev]').forEach(x => x.setAttribute('aria-pressed', Number(x.dataset.elev) === n));
+    // Đang "Đi vào nhà" khi nối mạch thật: thang máy chỉ chạy trên mô hình, không gọi thang máy thật
+    if (walk.on && backend === Api) { elevCallBackend = null; return; }
     if (elevTarget === elevFloor) { command('elevator', 'arrived_' + n); return; }
     elevCallBackend = backend;
     command('elevator', 'call_' + n);
@@ -1992,6 +2000,12 @@ function buildModel(){
   const tgt = { door1: 0, door3: 0, garage: 1, alarmOn: false, trig: false, smokeLvl: 0, smokeDet: false, mute: false };
   let lastLcd = '', prevSnd = null;
   function update(t){
+    // Mạch thật: cabin đi theo tầng do mạch thang máy báo về (current_floor), web không tự cho cabin chạy
+    if (backend === Api && !walk.on) {
+      const cur = Number(get(t, 'elevator/current_floor')), want = Number(get(t, 'elevator/target_floor'));
+      if (cur >= 1 && cur <= 3) elevTarget = cur;
+      document.querySelectorAll('[data-elev]').forEach(x => x.setAttribute('aria-pressed', Number(x.dataset.elev) === (want || cur)));
+    }
     const snap = { l: {}, d1: get(t, D.door1.path) === true, d3: get(t, D.door3.path) === true, g: get(t, D.garage.path), trig: get(t, D.alarm.trig) === true };
     const devLights = Object.keys(LIGHTS).filter(id => D[id]);
     devLights.forEach(id => snap.l[id] = isOn(D[id]) === true);
