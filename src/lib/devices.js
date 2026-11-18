@@ -12,12 +12,12 @@ export const DEVICES = {
   garage: { floor: 1, kind: 'garage', label: 'Cửa cuốn nhà xe', path: 'floor_1/garage/status', cmd: 'floor_1/garage/command', source: 'floor_1_Duy.ino' },
   alarm:  { floor: 1, kind: 'alarm', label: 'Báo trộm nhà xe (PIR)', path: 'floor_1/alarm_enabled_1', trig: 'floor_1/alarm_triggered_1', source: 'bao_trom_va_do_am.ino' },
   climate:{ floor: 1, kind: 'sensor', label: 'Nhiệt độ, độ ẩm (DHT11)', path: 'floor_1/temperature_1', humidity: 'floor_1/humidity_1', readOnly: 'Cảm biến chỉ đọc.', source: 'floor_1_Duy.ino' },
-  light2: { floor: 2, kind: 'light', label: 'Đèn LED tầng 2', path: 'floor_2/light_room_2', source: 'baochay_denl2.ino' },
-  smoke:  { floor: 2, kind: 'smoke', label: 'Báo cháy (MQ-2)', path: 'floor_2/smoke_level_2', detected: 'floor_2/smoke_detected_2', mute: 'floor_2/buzzer_mute_2', threshold: 120, source: 'baochay_denl2.ino' },
-  door3:  { floor: 3, kind: 'door', label: 'Khóa cửa vân tay', path: 'door_status', readOnly: 'Cửa tầng 3 chỉ mở bằng vân tay tại mạch.', source: 'van_tay.ino' },
+  light2: { floor: 3, kind: 'light', label: 'Đèn LED tầng 3', path: 'floor_2/light_room_2', source: 'baochay_denl2.ino' },
+  smoke:  { floor: 3, kind: 'smoke', label: 'Báo cháy (MQ-2)', path: 'floor_2/smoke_level_2', detected: 'floor_2/smoke_detected_2', mute: 'floor_2/buzzer_mute_2', threshold: 120, source: 'baochay_denl2.ino' },
+  door3:  { floor: 2, kind: 'door', label: 'Khóa cửa vân tay', path: 'door_status', readOnly: 'Cửa tầng 2 chỉ mở bằng vân tay tại mạch.', source: 'van_tay.ino' },
   wc1:    { floor: 1, kind: 'auto', label: 'Đèn WC 1', path: 'floor_1/wc1_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   wc2:    { floor: 1, kind: 'auto', label: 'Đèn WC 2', path: 'floor_1/wc2_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
-  light3: { floor: 3, kind: 'light', label: 'Đèn tầng 3', path: 'light_room_3', sim: true, source: 'van_tay.ino' },
+  light3: { floor: 2, kind: 'light', label: 'Đèn tầng 2', path: 'light_room_3', sim: true, source: 'van_tay.ino' },
   elevator: { floor: 1, kind: 'elevator', label: 'Thang máy (mô phỏng web)', path: 'elevator' },
 };
 

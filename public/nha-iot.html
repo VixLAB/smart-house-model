@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Lexend:wght@500;600;700&display=swap">
 <style>
-/* Layout: mặt cắt ngôi nhà 3 tầng (mái → tầng 3 → tầng 2 → tầng 1 → nền đất) bên trái, cột cảm biến + nhật ký bên phải */
+/* Layout: mặt cắt ngôi nhà 3 tầng (mô hình 3D: tầng 1 dưới, tầng 3 trên; bảng điều khiển cũng xếp tầng 3 trên, tầng 1 dưới) bên trái, cột cảm biến + nhật ký bên phải */
 :root{
   --paper:#EDF1F0; --surface:#FBFCFC; --tile:#F2F5F4; --ink:#14302F; --muted:#5A716F; --line:#CCD8D6;
   --wall:#1F4644; --accent:#1C6E68; --accent-ink:#FFFFFF;
@@ -81,15 +81,76 @@ details .form-grid{margin-top:10px}
 /* House section */
 .house{display:flex;flex-direction:column;min-width:0}
 .roof{height:58px;margin:0 -12px;background:var(--wall);clip-path:polygon(50% 0,100% 100%,0 100%);position:relative}
-.floor{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;background:var(--surface);border:6px solid var(--wall);border-top:0;padding:16px 16px 18px 10px}
+.floor{display:grid;grid-template-columns:44px minmax(0,1fr) 84px;gap:14px;background:var(--surface);border:6px solid var(--wall);border-top:0;padding:16px 16px 18px 10px}
 .floor.first{border-top:6px solid var(--wall)}
 .floor-label{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-right:1px dashed var(--line);padding-right:10px}
 .floor-label b{font-family:var(--font-display);font-size:1.9rem;line-height:1;font-weight:700;color:var(--wall)}
 .floor-label span{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg)}
+.shaft{margin:-16px -16px -18px 0;border-left:6px solid var(--wall);background:repeating-linear-gradient(90deg,transparent 0 10px,color-mix(in srgb,var(--line) 70%,transparent) 10px 11px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 6px;min-height:84px;position:relative}
+.shaft::before{content:attr(data-f);position:absolute;top:6px;right:8px;font-size:.66rem;font-weight:700;color:var(--muted)}
+.cabin-ind{display:none;width:100%;max-width:60px;height:62px;border:2px solid var(--wall);border-radius:6px;background:var(--surface);position:relative;overflow:hidden}
+.cabin-ind::before,.cabin-ind::after{content:"";position:absolute;top:0;bottom:0;width:50%;background:color-mix(in srgb,var(--accent) 35%,var(--surface));transition:transform .5s}
+.cabin-ind::before{left:0;border-right:1px solid var(--wall)}.cabin-ind::after{right:0}
+.shaft[data-here="1"] .cabin-ind{display:block}
+.shaft[data-here="1"][data-idle="1"] .cabin-ind::before{transform:translateX(-85%)}
+.shaft[data-here="1"][data-idle="1"] .cabin-ind::after{transform:translateX(85%)}
+.shaft-note{font-size:.66rem;color:var(--muted);text-align:center;line-height:1.2}
+.shaft[data-here="1"] .shaft-note{color:var(--accent);font-weight:600}
+.shaft[data-want="1"] .shaft-note{color:var(--amber);font-weight:600;animation:lift-call 1s ease-in-out infinite}
+/* Cabin chạy dọc giếng qua cả 3 tầng (màn rộng); màn hẹp vẫn dùng ô cabin-ind từng tầng */
+.house{position:relative}
+.house.has-lift .cabin-ind{display:none!important}
+.house.has-lift .shaft-note{margin-top:auto}
+.house.has-lift .shaft[data-here="1"] .shaft-note{visibility:hidden}
+.lift{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:2}
+.lift-cable{position:absolute;left:50%;top:0;width:2px;margin-left:-1px;background:repeating-linear-gradient(180deg,var(--muted) 0 3px,transparent 3px 5px)}
+.lift-cab{position:absolute;left:50%;top:0;width:60px;height:66px;margin-left:-30px;border:2px solid var(--wall);border-radius:6px;background:var(--surface);overflow:hidden;box-shadow:0 2px 0 var(--wall);transition:box-shadow .3s}
+.lift-disp{position:absolute;left:0;right:0;top:0;height:16px;display:flex;align-items:center;justify-content:center;gap:3px;background:var(--wall);color:var(--accent);font:700 .68rem/1 var(--font-mono);z-index:1}
+.lift-disp i{font-style:normal;font-size:.6rem;opacity:0}
+.lift.moving .lift-disp i{opacity:1;animation:lift-arrow .7s ease-in-out infinite}
+.lift-door{position:absolute;top:16px;bottom:0;width:50%;background:color-mix(in srgb,var(--accent) 35%,var(--surface));transition:transform .5s ease-in-out}
+.lift-door.l{left:0;border-right:1px solid var(--wall)}.lift-door.r{right:0}
+.lift.open .lift-door.l{transform:translateX(-85%)}.lift.open .lift-door.r{transform:translateX(85%)}
+.lift.moving .lift-cab{box-shadow:0 2px 0 var(--wall),0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+.lift.arrive .lift-cab{animation:lift-arrive .6s ease-out}
+@keyframes lift-call{50%{opacity:.35}}
+@keyframes lift-arrow{50%{transform:translateY(var(--dy,-2px))}}
+@keyframes lift-arrive{0%{box-shadow:0 2px 0 var(--wall),0 0 0 0 color-mix(in srgb,var(--accent) 70%,transparent)}100%{box-shadow:0 2px 0 var(--wall),0 0 0 12px transparent}}
+@media (max-width:520px){.lift{display:none}.house.has-lift .shaft-note,.house.has-lift .shaft[data-here="1"] .shaft-note{margin-top:0;visibility:visible}.house.has-lift .shaft[data-here="1"] .cabin-ind{display:block!important}}
+.hall{display:flex;flex-direction:row;gap:5px;margin-bottom:auto;order:-1;margin-top:12px}
+.house.has-lift .hall{position:relative;z-index:3}
+.hall-btn{width:26px;height:26px;border-radius:50%;border:2px solid var(--wall);background:var(--surface);color:var(--muted);font-size:.62rem;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0;transition:color .2s,border-color .2s,box-shadow .2s,transform .1s}
+.hall-btn:hover{color:var(--accent);border-color:var(--accent)}
+.hall-btn:active{transform:scale(.88)}
+.hall-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hall-btn.pressed{color:var(--amber);border-color:var(--amber);box-shadow:0 0 0 3px color-mix(in srgb,var(--amber) 25%,transparent),0 0 12px color-mix(in srgb,var(--amber) 60%,transparent)}
+.hall-btn.pressed::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--amber);animation:hall-ring .9s ease-out}
+.hall-btn{position:relative}
+@keyframes hall-ring{from{opacity:.9;transform:scale(.7)}to{opacity:0;transform:scale(1.4)}}
+.lift-cab{pointer-events:auto;cursor:pointer}
+.lift-cab:hover{border-color:var(--accent)}
+.lift-cab:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lift.arrive .lift-cab{animation:lift-arrive .6s ease-out,lift-bounce .45s ease-out}
+@keyframes lift-bounce{0%{top:0}35%{top:var(--bounce,4px)}70%{top:calc(var(--bounce,4px) * -.4)}100%{top:0}}
+.lift-pad{position:absolute;right:calc(100% + 4px);top:0;pointer-events:auto;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgb(0 0 0 / .35);z-index:4;animation:pad-in .18s ease-out}
+.lift-pad[hidden]{display:none}
+.lift-pad b{font-size:.62rem;color:var(--muted);text-align:center;font-weight:600;white-space:nowrap}
+.lift-pad button{width:38px;height:30px;border-radius:7px;border:1px solid var(--line);background:color-mix(in srgb,var(--wall) 25%,var(--surface));color:inherit;font:700 .8rem/1 var(--font-mono);cursor:pointer;transition:transform .1s,background .2s}
+.lift-pad button:hover{background:color-mix(in srgb,var(--accent) 30%,var(--surface))}
+.lift-pad button:active{transform:scale(.9)}
+.lift-pad button[aria-current="true"]{color:var(--accent);border-color:var(--accent)}
+.lift-pad button.pressed{background:var(--amber);color:#1b1b1b;border-color:var(--amber)}
+.lift-pad button[data-go="open"]{font-size:.6rem;letter-spacing:-1px}
+@keyframes pad-in{from{opacity:0;transform:translateX(6px) scale(.95)}}
+@media (max-width:520px){.hall{flex-direction:row;order:0;margin:0 0 0 auto}}
+@media (prefers-reduced-motion:reduce){.shaft-note,.lift *,.hall-btn::after,.lift-pad{animation:none!important;transition:none!important}}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;min-width:0}
 .ground{height:16px;margin:0 -12px;border-top:3px solid var(--wall);background:repeating-linear-gradient(135deg,var(--wall) 0 1.5px,transparent 1.5px 8px)}
 @media (max-width:520px){
   .floor{grid-template-columns:minmax(0,1fr);padding:12px}
+  .shaft{margin:0;border-left:0;border-top:1px dashed var(--line);flex-direction:row;min-height:0;padding:8px 0 0;justify-content:flex-start}
+  .shaft::before{display:none}
+  .cabin-ind{width:34px;height:26px}
   .floor-label{flex-direction:row;justify-content:flex-start;border-right:0;border-bottom:1px dashed var(--line);padding:0 0 8px}
   .floor-label b{font-size:1.3rem}
   .floor-label span{writing-mode:horizontal-tb;transform:none}
@@ -224,6 +285,11 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
 @media (max-width:520px){.m-elev,.m-view{font-size:0;gap:0;padding:4px}}
 .m-elev{position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 8px 6px 12px;font-size:.8rem}
 .m-elev .seg button{padding:4px 11px;font-family:var(--font-mono);font-size:.8rem}
+.pw-form{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pw-form label{flex-basis:100%;font-size:.8rem;color:var(--muted)}
+.pw-form input{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:inherit;font-family:var(--font-mono)}
+.pw-form small{flex-basis:100%;min-height:1em;font-size:.78rem}
+.pw-form small[data-ok="1"]{color:var(--accent)}.pw-form small[data-ok="0"]{color:var(--danger)}
 .m-elev .elev-note{font-size:.68rem;color:var(--muted)}
 @media (max-width:760px){.m-elev .elev-note{display:none}}
 .m-msg{position:absolute;left:50%;top:12px;transform:translateX(-50%);margin:0;max-width:calc(100% - 24px);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:.82rem;text-align:center}
@@ -321,6 +387,12 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
         </div>
         <p class="m-alert" id="model-alert" role="alert" hidden></p>
         <section class="m-panel" id="room-panel" aria-label="Điều khiển phòng" hidden></section>
+        <form class="m-panel pw-form" id="pw-pop" autocomplete="off" aria-label="Bàn phím cửa chính" hidden>
+          <div class="m-ph" style="flex-basis:100%"><div><b>Cửa chính · bàn phím</b><small class="hint">Nhập mật khẩu rồi bấm Nhập (đúng: 111#)</small></div><button class="btn" type="button" id="pw-pop-x" aria-label="Đóng">×</button></div>
+          <input id="pw-pop-in" type="text" maxlength="12" placeholder="Mật khẩu" aria-describedby="pw-pop-msg">
+          <button class="btn" type="submit">Nhập</button>
+          <small id="pw-pop-msg" role="status"></small>
+        </form>
         <div class="m-walk" id="walk-ui" hidden>
           <div class="m-cross" aria-hidden="true"></div>
           <p class="m-hint" id="walk-hint" hidden></p>
@@ -353,12 +425,17 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
         <h2>Giả lập phần cứng</h2>
         <p class="sub">Tạo sự kiện như khi có người dùng mạch thật</p>
         <div class="sim-grid">
-          <button class="btn" type="button" data-sim="keypad">Nhập đúng mật khẩu cửa chính</button>
-          <button class="btn" type="button" data-sim="finger">Quét đúng vân tay tầng 3</button>
+          <form class="pw-form" id="pw-form" autocomplete="off">
+            <label for="pw-in">Bàn phím cửa chính</label>
+            <input id="pw-in" type="text" maxlength="12" placeholder="Nhập mật khẩu (ví dụ 111#)" aria-describedby="pw-msg">
+            <button class="btn" type="submit">Nhập</button>
+            <small id="pw-msg" role="status"></small>
+          </form>
+          <button class="btn" type="button" data-sim="finger">Quét đúng vân tay tầng 2</button>
           <button class="btn" type="button" data-sim="wc1">Có người vào WC 1</button>
           <button class="btn" type="button" data-sim="wc2">Có người vào WC 2</button>
           <button class="btn" type="button" data-sim="pir">Có chuyển động ở nhà xe</button>
-          <button class="btn" type="button" data-sim="smoke">Tạo khói tầng 2</button>
+          <button class="btn" type="button" data-sim="smoke">Tạo khói tầng 3</button>
         </div>
       </section>
 
@@ -409,16 +486,17 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
     <div class="model-head"><h2 id="panel-title">Bảng điều khiển theo tầng</h2><p>Mỗi ô ghi đường dẫn Firebase và mã thiết bị trong API.</p></div>
     <div class="house" aria-label="Mặt cắt ngôi nhà">
       <div class="roof" aria-hidden="true"></div>
-      <section class="floor first" aria-labelledby="fl3"><div class="floor-label"><b id="fl3">3</b><span>Tầng 3</span></div><div class="tiles" id="floor-3"></div></section>
-      <section class="floor" aria-labelledby="fl2"><div class="floor-label"><b id="fl2">2</b><span>Tầng 2</span></div><div class="tiles" id="floor-2"></div></section>
-      <section class="floor" aria-labelledby="fl1"><div class="floor-label"><b id="fl1">1</b><span>Tầng 1</span></div><div class="tiles" id="floor-1"></div></section>
+      <section class="floor first" aria-labelledby="fl3"><div class="floor-label"><b id="fl3">3</b><span>Tầng 3</span></div><div class="tiles" id="floor-3"></div><div class="shaft" id="shaft-3" data-f="3" role="group" aria-label="Giếng thang máy tầng 3"><div class="cabin-ind"></div><span class="shaft-note">Thang máy</span><div class="hall"><button type="button" class="hall-btn" data-call="3" data-dir="down" aria-label="Gọi thang máy đi xuống tại tầng 3">▼</button></div></div></section>
+      <section class="floor" aria-labelledby="fl2"><div class="floor-label"><b id="fl2">2</b><span>Tầng 2</span></div><div class="tiles" id="floor-2"></div><div class="shaft" id="shaft-2" data-f="2" role="group" aria-label="Giếng thang máy tầng 2"><div class="cabin-ind"></div><span class="shaft-note">Thang máy</span><div class="hall"><button type="button" class="hall-btn" data-call="2" data-dir="up" aria-label="Gọi thang máy đi lên tại tầng 2">▲</button><button type="button" class="hall-btn" data-call="2" data-dir="down" aria-label="Gọi thang máy đi xuống tại tầng 2">▼</button></div></div></section>
+      <section class="floor" aria-labelledby="fl1"><div class="floor-label"><b id="fl1">1</b><span>Tầng 1</span></div><div class="tiles" id="floor-1"></div><div class="shaft" id="shaft-1" data-f="1" role="group" aria-label="Giếng thang máy tầng 1"><div class="cabin-ind"></div><span class="shaft-note">Thang máy</span><div class="hall"><button type="button" class="hall-btn" data-call="1" data-dir="up" aria-label="Gọi thang máy đi lên tại tầng 1">▲</button></div></div></section>
+      <div class="lift open" id="lift"><div class="lift-cable" aria-hidden="true"></div><div class="lift-pad" id="lift-pad" role="group" aria-label="Bảng nút trong cabin" hidden><b>Đi tầng</b><button type="button" data-go="3">3</button><button type="button" data-go="2">2</button><button type="button" data-go="1">1</button><button type="button" data-go="open" aria-label="Mở cửa">◀▶</button></div><div class="lift-cab" role="button" tabindex="0" aria-label="Cabin thang máy, bấm để chọn tầng" aria-haspopup="true" aria-controls="lift-pad"><div class="lift-disp"><i>▲</i><b>1</b></div><div class="lift-door l"></div><div class="lift-door r"></div></div></div>
       <div class="ground" aria-hidden="true"></div>
     </div>
   </section>
 
   <section class="card api-card" aria-labelledby="api-title">
     <h2 id="api-title">API thiết bị</h2>
-    <p class="sub">Project Next.js trả lời các route dưới đây. Gửi khóa trong header <code>x-api-key</code> nếu đã đặt <code>SMART_HOME_API_KEY</code>. Đèn WC và đèn tầng 3 chỉ có khi mô phỏng nên không có trong API.</p>
+    <p class="sub">Project Next.js trả lời các route dưới đây. Gửi khóa trong header <code>x-api-key</code> nếu đã đặt <code>SMART_HOME_API_KEY</code>. Đèn WC và đèn tầng 2 chỉ có khi mô phỏng nên không có trong API.</p>
     <div class="api-routes">
       <code>GET /api/devices</code><span>Toàn bộ nhánh /home và trạng thái từng thiết bị</span>
       <code>GET /api/devices/{id}</code><span>Trạng thái một thiết bị</span>
@@ -427,7 +505,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
     <div class="table-wrap"><table class="api-table"><thead><tr><th>id</th><th>Tầng</th><th>Thiết bị</th><th>Lệnh</th><th>Đường dẫn Firebase</th></tr></thead><tbody id="api-rows"></tbody></table></div>
   </section>
 
-  <p class="foot">Mỗi ô ghi đường dẫn Firebase nó đọc/ghi, khớp với firmware trong thư mục CODE: <code>floor_1_Duy</code> (quạt, 2 dây LED, cửa chính, cửa cuốn, DHT11), <code>bao_trom_va_do_am</code>, <code>baochay_denl2</code>, <code>van_tay</code>. Đèn WC (<code>den_wc</code>) và đèn tầng 3 chỉ có khi mô phỏng: nhà thật không lắp nên khi nối mạch thật, trên API và app điện thoại không có chúng. Thang máy chạy Arduino UNO riêng, không nối mạng, trên trang chỉ mô phỏng.</p>
+  <p class="foot">Mỗi ô ghi đường dẫn Firebase nó đọc/ghi, khớp với firmware trong thư mục CODE: <code>floor_1_Duy</code> (quạt, 2 dây LED, cửa chính, cửa cuốn, DHT11), <code>bao_trom_va_do_am</code>, <code>baochay_denl2</code>, <code>van_tay</code>. Đèn WC (<code>den_wc</code>) và đèn tầng 2 chỉ có khi mô phỏng: nhà thật không lắp nên khi nối mạch thật, trên API và app điện thoại không có chúng. Thang máy chạy Arduino UNO riêng, không nối mạng, trên trang chỉ mô phỏng.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -456,12 +534,12 @@ const API_DEVICES = {
   garage: { floor: 1, kind: 'garage', label: 'Cửa cuốn nhà xe', path: 'floor_1/garage/status', cmd: 'floor_1/garage/command', source: 'floor_1_Duy.ino' },
   alarm:  { floor: 1, kind: 'alarm', label: 'Báo trộm nhà xe (PIR)', path: 'floor_1/alarm_enabled_1', trig: 'floor_1/alarm_triggered_1', source: 'bao_trom_va_do_am.ino' },
   climate:{ floor: 1, kind: 'sensor', label: 'Nhiệt độ, độ ẩm (DHT11)', path: 'floor_1/temperature_1', humidity: 'floor_1/humidity_1', readOnly: 'Cảm biến chỉ đọc.', source: 'floor_1_Duy.ino' },
-  light2: { floor: 2, kind: 'light', label: 'Đèn LED tầng 2', path: 'floor_2/light_room_2', source: 'baochay_denl2.ino' },
-  smoke:  { floor: 2, kind: 'smoke', label: 'Báo cháy (MQ-2)', path: 'floor_2/smoke_level_2', detected: 'floor_2/smoke_detected_2', mute: 'floor_2/buzzer_mute_2', threshold: 120, source: 'baochay_denl2.ino' },
-  door3:  { floor: 3, kind: 'door', label: 'Khóa cửa vân tay', path: 'door_status', readOnly: 'Cửa tầng 3 chỉ mở bằng vân tay tại mạch.', source: 'van_tay.ino' },
+  light2: { floor: 3, kind: 'light', label: 'Đèn LED tầng 3', path: 'floor_2/light_room_2', source: 'baochay_denl2.ino' },
+  smoke:  { floor: 3, kind: 'smoke', label: 'Báo cháy (MQ-2)', path: 'floor_2/smoke_level_2', detected: 'floor_2/smoke_detected_2', mute: 'floor_2/buzzer_mute_2', threshold: 120, source: 'baochay_denl2.ino' },
+  door3:  { floor: 2, kind: 'door', label: 'Khóa cửa vân tay', path: 'door_status', readOnly: 'Cửa tầng 2 chỉ mở bằng vân tay tại mạch.', source: 'van_tay.ino' },
   wc1:    { floor: 1, kind: 'auto', label: 'Đèn WC 1', path: 'floor_1/wc1_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   wc2:    { floor: 1, kind: 'auto', label: 'Đèn WC 2', path: 'floor_1/wc2_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
-  light3: { floor: 3, kind: 'light', label: 'Đèn tầng 3', path: 'light_room_3', sim: true, source: 'van_tay.ino' },
+  light3: { floor: 2, kind: 'light', label: 'Đèn tầng 2', path: 'light_room_3', sim: true, source: 'van_tay.ino' },
   elevator: { floor: 1, kind: 'elevator', label: 'Thang máy (mô phỏng web)', path: 'elevator' },
 };
 
@@ -583,12 +661,12 @@ function resolveAction(home, id, action, opts) {
 /* ===== Thiết bị: đường dẫn tính từ /home, đúng như firmware ===== */
 // sim: chỉ có khi mô phỏng (lấy từ API_DEVICES), ẩn khi nối mạch thật
 const DEVICES = {
-  3: [
-    { id:'door3', kind:'door', label:'Khóa cửa vân tay', path:'door_status' },
-    { id:'light3', kind:'light', label:'Đèn tầng 3', path:'light_room_3' }
-  ],
   2: [
-    { id:'light2', kind:'light', label:'Đèn LED tầng 2', path:'floor_2/light_room_2' },
+    { id:'door3', kind:'door', label:'Khóa cửa vân tay', path:'door_status' },
+    { id:'light3', kind:'light', label:'Đèn tầng 2', path:'light_room_3' }
+  ],
+  3: [
+    { id:'light2', kind:'light', label:'Đèn LED tầng 3', path:'floor_2/light_room_2' },
     { id:'smoke', kind:'smoke', label:'Báo cháy (MQ-2, còi)', path:'floor_2/smoke_level_2', detected:'floor_2/smoke_detected_2', mute:'floor_2/buzzer_mute_2' }
   ],
   1: [
@@ -699,13 +777,13 @@ const RULES = [
   ['floor_1/wc2_light', v => v === true && ['Có người vào WC 2, đèn bật', 'info']],
   ['floor_1/alarm_triggered_1', v => v === true && ['Phát hiện chuyển động ở nhà xe', 'danger']],
   ['floor_1/alarm_enabled_1', v => [v ? 'Bật báo trộm' : 'Tắt báo trộm', 'muted']],
-  ['floor_2/smoke_detected_2', (v, t) => v ? ['Phát hiện khói ở tầng 2 (mức ' + get(t, 'floor_2/smoke_level_2') + ')', 'danger'] : ['Hết khói ở tầng 2', 'ok']],
+  ['floor_2/smoke_detected_2', (v, t) => v ? ['Phát hiện khói ở tầng 3 (mức ' + get(t, 'floor_2/smoke_level_2') + ')', 'danger'] : ['Hết khói ở tầng 3', 'ok']],
   ['floor_2/buzzer_mute_2', v => [v ? 'Tắt còi báo khói' : 'Bật lại còi báo khói', 'muted']],
-  ['door_status', v => v === true && ['Cửa tầng 3 mở bằng vân tay', 'info']],
+  ['door_status', v => v === true && ['Cửa tầng 2 mở bằng vân tay', 'info']],
   ['floor_1/light_room_1', v => [v === false ? 'Đèn tầng 1 bật' : 'Đèn tầng 1 tắt', 'muted']],
   ['floor_1/fan_room_1', v => [v ? 'Quạt tầng 1 bật' : 'Quạt tầng 1 tắt', 'muted']],
-  ['floor_2/light_room_2', v => [v ? 'Đèn LED tầng 2 bật' : 'Đèn LED tầng 2 tắt', 'muted']],
-  ['light_room_3', v => [v ? 'Đèn tầng 3 bật' : 'Đèn tầng 3 tắt', 'muted']],
+  ['floor_2/light_room_2', v => [v ? 'Đèn LED tầng 3 bật' : 'Đèn LED tầng 3 tắt', 'muted']],
+  ['light_room_3', v => [v ? 'Đèn tầng 2 bật' : 'Đèn tầng 2 tắt', 'muted']],
   ['thongbao', v => v && ['Mạch báo: ' + v, 'info']]
 ];
 function log(msg, type){
@@ -743,11 +821,11 @@ const LOADS = [
   { id:'light1', label:'Đèn tầng 1 (2 dây LED)', w:20, on: t => get(t, 'floor_1/light_room_1') === false },
   { id:'fan1', label:'Quạt tầng 1', w:60, on: t => get(t, 'floor_1/fan_room_1') === true },
   { id:'garage', label:'Motor cửa cuốn', w:300, note:'Chạy ' + GARAGE_RUN_S + ' giây mỗi lần mở/đóng' },
-  { id:'light2', label:'Đèn LED tầng 2', w:20, on: t => get(t, 'floor_2/light_room_2') === true },
+  { id:'light2', label:'Đèn LED tầng 3', w:20, on: t => get(t, 'floor_2/light_room_2') === true },
   { id:'alarm', label:'Báo trộm canh gác', w:2, on: t => get(t, 'floor_1/alarm_enabled_1') === true },
   { id:'siren', label:'Còi báo trộm, báo cháy', w:15, on: t => get(t, 'floor_1/alarm_triggered_1') === true || (get(t, 'floor_2/smoke_detected_2') === true && get(t, 'floor_2/buzzer_mute_2') !== true) },
   { id:'base', label:'Mạch điều khiển', w:5, note:'ESP8266, Arduino UNO, LCD, cảm biến, luôn bật', on: () => true },
-  { id:'light3', label:'Đèn tầng 3', w:20, sim:true, on: t => get(t, 'light_room_3') === true },
+  { id:'light3', label:'Đèn tầng 2', w:20, sim:true, on: t => get(t, 'light_room_3') === true },
   { id:'wc1', label:'Đèn WC 1', w:9, sim:true, on: t => get(t, 'floor_1/wc1_light') === true },
   { id:'wc2', label:'Đèn WC 2', w:9, sim:true, on: t => get(t, 'floor_1/wc2_light') === true }
 ];
@@ -866,10 +944,118 @@ function realOnly(t){
   SIM_PATHS.forEach(p => { const ks = p.split('/'), key = ks.pop(), parent = ks.length ? get(c, ks.join('/')) : c; if (parent && typeof parent === 'object') delete parent[key]; });
   return c;
 }
+/* Giếng thang máy bên phải ngôi nhà: cabin nằm ở tầng current_floor, tầng đích hiện chữ "đang tới" */
+let shaftLive = null;  // {at, tgt} do mô hình 3D báo khi cabin đang chạy; null thì lấy từ Firebase
+function updateShaft(){
+  const cur = shaftLive ? shaftLive.at : Number(get(tree, 'elevator/current_floor')) || 1;
+  const tgt = shaftLive ? shaftLive.tgt : Number(get(tree, 'elevator/target_floor')) || cur;
+  Lift.set(cur, tgt);
+  [1, 2, 3].forEach(n => {
+    const el = $('#shaft-' + n); if (!el) return;
+    const here = n === cur, want = !here && n === tgt;
+    el.dataset.here = here ? 1 : 0; el.dataset.idle = tgt === cur ? 1 : 0; el.dataset.want = want ? 1 : 0;
+    if (!want) el.querySelectorAll('.hall-btn.pressed').forEach(b => b.classList.remove('pressed'));
+    el.querySelector('.shaft-note').textContent = here ? (tgt === cur ? 'Thang máy · cửa mở' : 'Thang máy · đi tầng ' + tgt) : want ? 'Đang tới…' : '';
+  });
+}
+/* Hiệu ứng cabin trên bảng điều khiển: đóng cửa → chạy êm giữa các tầng → mở cửa khi đến */
+const Lift = (() => {
+  const el = $('#lift'), house = el && el.closest('.house');
+  if (!el) return { set(){} };
+  house.classList.add('has-lift');
+  const cab = el.querySelector('.lift-cab'), cable = el.querySelector('.lift-cable'), num = el.querySelector('.lift-disp b'), arrow = el.querySelector('.lift-disp i');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let pos = null, tgt = 1, state = 'open', t0 = 0, raf = 0, top = 0, userCall = false, ac = null;
+  const pad = $('#lift-pad');
+  function ding(){
+    if (!userCall) return; userCall = false;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      [[1320, 0], [990, .16]].forEach(([f, d]) => {
+        const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + d;
+        o.frequency.value = f; o.type = 'sine'; g.gain.setValueAtTime(.06, t); g.gain.exponentialRampToValueAtTime(.0001, t + .6);
+        o.connect(g).connect(ac.destination); o.start(t); o.stop(t + .62);
+      });
+    } catch (e) {}
+  }
+  // Gọi thang: dùng chung đường với nút Thang máy 1/2/3 của mô hình 3D để Firebase/mô phỏng nhận lệnh
+  function call(n){
+    userCall = true;
+    const b = document.querySelector('.m-elev [data-elev="' + n + '"]');
+    if (b) b.click();
+    else { command('elevator', 'call_' + n); set(pos == null ? 1 : Math.round(pos), n); }
+    if (n === tgt && state === 'open' && Math.round(pos) === n) reopen();
+  }
+  function reopen(){ el.classList.remove('open'); setTimeout(() => { el.classList.add('open'); ding(); }, 380); }
+  function showPad(on){
+    pad.hidden = !on; cab.setAttribute('aria-expanded', on);
+    if (on) { const at = Math.round(pos); pad.querySelectorAll('[data-go]').forEach(x => { x.setAttribute('aria-current', x.dataset.go == at); x.classList.toggle('pressed', x.dataset.go == tgt && tgt !== at); }); pad.style.top = (yAt(pos) - 10) + 'px'; pad.querySelector('[data-go]').focus({ preventScroll: true }); }
+  }
+  cab.addEventListener('click', e => { e.stopPropagation(); showPad(pad.hidden); });
+  cab.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showPad(pad.hidden); } });
+  pad.addEventListener('click', e => {
+    e.stopPropagation();
+    const b = e.target.closest('[data-go]'); if (!b) return;
+    if (b.dataset.go === 'open') { userCall = true; if (state === 'open') reopen(); showPad(false); return; }
+    b.classList.add('pressed'); setTimeout(() => showPad(false), 260);
+    call(Number(b.dataset.go));
+  });
+  document.addEventListener('click', e => { if (!pad.hidden && !el.contains(e.target)) showPad(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !pad.hidden) { showPad(false); cab.focus(); } });
+  document.querySelectorAll('.hall-btn').forEach(b => b.addEventListener('click', () => {
+    const n = Number(b.dataset.call);
+    b.classList.remove('pressed'); void b.offsetWidth; b.classList.add('pressed');
+    call(n);
+  }));
+  const ys = {};
+  function layout(){
+    const sh = [1, 2, 3].map(n => $('#shaft-' + n)); if (sh.some(x => !x)) return;
+    const cs = getComputedStyle(sh[0]);
+    el.style.left = sh[0].offsetLeft + parseFloat(cs.borderLeftWidth) + 'px';
+    el.style.width = sh[0].clientWidth + 'px';
+    sh.forEach((x, i) => { ys[i + 1] = x.offsetTop + x.offsetHeight - cab.offsetHeight - 26; });  // cabin đậu sát sàn, chừa chỗ cho dòng chú thích
+    top = Math.min(...sh.map(x => x.offsetTop));
+    draw();
+  }
+  function yAt(p){ const a = Math.floor(p), b = Math.min(3, a + 1), f = p - a; return ys[a] + (ys[b] - ys[a]) * f; }
+  function draw(){
+    if (pos == null || ys[1] == null) return;
+    const y = yAt(pos);
+    cab.style.transform = 'translateY(' + y + 'px)';
+    cable.style.top = top + 'px'; cable.style.height = Math.max(0, y - top) + 'px';
+    num.textContent = Math.round(pos);
+  }
+  function tick(now){
+    raf = 0;
+    if (state === 'closing' && now - t0 > 550) { state = 'moving'; el.classList.add('moving'); t0 = now; }
+    if (state === 'moving') {
+      const d = tgt - pos, dt = Math.min(.05, (now - t0) / 1000); t0 = now;
+      const v = Math.min(.7, Math.abs(d) * 1.6 + .08);  // tầng/giây, chậm dần khi gần tới
+      arrow.textContent = d > 0 ? '▲' : '▼'; arrow.style.setProperty('--dy', d > 0 ? '-2px' : '2px');
+      if (Math.abs(d) <= v * dt + 1e-3) {
+        pos = tgt; state = 'open'; el.classList.remove('moving'); el.classList.add('open', 'arrive'); ding();
+        el.style.setProperty('--bounce', d > 0 ? '-4px' : '4px');
+        setTimeout(() => el.classList.remove('arrive'), 650);
+      } else pos += Math.sign(d) * v * dt;
+      draw();
+    }
+    if (state !== 'open') raf = requestAnimationFrame(tick);
+  }
+  function go(){
+    if (pos === tgt && state === 'open') return;
+    if (reduce) { pos = tgt; draw(); return; }
+    if (state === 'open') { state = 'closing'; t0 = performance.now(); el.classList.remove('open'); }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  if (window.ResizeObserver) new ResizeObserver(layout).observe(house); else addEventListener('resize', layout);
+  function set(cur, target){ if (pos == null) { pos = cur; layout(); } tgt = target; go(); }
+  return { set };
+})();
 function onTree(t){
   Energy.step();  // tính phần điện của trạng thái cũ trước khi đổi
   tree = backend === Sim ? (t || {}) : realOnly(t);
   ALL.forEach(updateTile);
+  updateShaft();
   const temp = get(tree, 'floor_1/temperature_1'), humi = get(tree, 'floor_1/humidity_1');
   $('#r-temp').innerHTML = (typeof temp === 'number' ? temp.toFixed(1) : '—') + '<em>°C</em>';
   $('#r-humi').innerHTML = (typeof humi === 'number' ? humi.toFixed(0) : '—') + '<em>%</em>';
@@ -902,10 +1088,17 @@ const Sim = {
     if (p === 'floor_1/garage/command') { this.pending.garage = true; this.emit(); setTimeout(() => { this.pending.garage = false; this.set('floor_1/garage/status', v === 'open' ? 'open' : 'closed'); }, 900); }
   },
   command(id, a){ localCommand(Sim, id, a); },
+  // Mật khẩu giống firmware floor_1_Duy (password = "111#"). Đúng thì mở cửa, sai thì báo lỗi, cửa vẫn đóng.
+  keypad(code){
+    const ok = code === undefined || code === '111#';
+    ['#pw-msg', '#pw-pop-msg'].forEach(q => { const m = $(q); if (m) { m.dataset.ok = ok ? 1 : 0; m.textContent = ok ? 'Đúng mật khẩu, cửa chính mở.' : 'Sai mật khẩu, thử lại.'; } });
+    if (ok) this.act('keypad-ok'); else log('Nhập sai mật khẩu cửa chính, cửa vẫn đóng', 'danger');
+  },
   later(ms, fn){ setTimeout(() => { if (backend === Sim) fn(); }, ms); },
   act(a){
     // Như cua_chinh: mở cửa chính thì bật đèn tầng 1 (light_room_1 = false)
-    if (a === 'keypad') { this.set('floor_1/door_opened_1', true); this.set('floor_1/light_room_1', false); this.later(3000, () => this.set('floor_1/door_opened_1', false)); }
+    if (a === 'keypad') this.keypad();
+    if (a === 'keypad-ok') { this.set('floor_1/door_opened_1', true); this.set('floor_1/light_room_1', false); this.later(3000, () => this.set('floor_1/door_opened_1', false)); }
     if (a === 'finger') { this.set('light_room_3', true); this.set('door_status', true); this.later(2000, () => this.set('door_status', false)); }
     if (a === 'wc1' || a === 'wc2') { const p = 'floor_1/' + a + '_light'; this.set(p, true); this.later(3000, () => this.set(p, false)); }
     if (a === 'pir') {
@@ -1047,6 +1240,7 @@ $('#logout-btn').addEventListener('click', async () => {
   goSim();
   log('Đã đăng xuất', 'muted');
 });
+$('#pw-form').addEventListener('submit', e => { e.preventDefault(); if (backend !== Sim) return; const i = $('#pw-in'); Sim.keypad(i.value.trim()); i.value = ''; });
 document.querySelectorAll('[data-sim]').forEach(b => b.addEventListener('click', () => { if (backend === Sim) Sim.act(b.dataset.sim); }));
 
 /* Bảng tra cứu API */
@@ -1214,7 +1408,7 @@ function buildModel(){
   [['Phòng khách', 30, 36], ['Nhà xe', 12, 61], ['Bếp', 32, 52], ['Cầu thang', 31, 71], ['Hồ bơi', 40, 11], ['WC 1', 74, 15], ['WC 2', 86, 13], ['Phòng làm việc', 76, 44], ['Sảnh', 54, 66]].forEach(([t, x, z]) => label(0, t, x, FH + .2, z));
 
   /* ================= TẦNG 3: tầng tường mica trong ================= */
-  { const g = floors[2], y = fy(2);
+  { const g = floors[1], y = fy(1);
     [[4, 26, 92, 60], [4, 60, 20, 76], [42, 60, 64, 76], [20, 60, 42, 66], [82, 60, 92, 76]].forEach(([a, b, c, d]) => { plate(g, a, b, c, d, M.slab, y - SL, SL); floorT(g, TX.peach, 6, a, b, c, d, y); });
     // Tường ngoài bằng mica trong
     wallX(g, 4, 92, 26, y, FH, M.acrylic); wallZ(g, 26, 76, 4, y, FH, M.acrylic); wallZ(g, 26, 76, 92, y, FH, M.acrylic);
@@ -1260,7 +1454,7 @@ function buildModel(){
     Cyl(g, .07, .03, M.black, px(4) + .04, y + 1.15, pz(66)).rotation.z = Math.PI / 2;
     const leaning = B(g, .02, .7, 7 * S, M.woodDark, px(86), y + .35, pz(56)); leaning.rotation.z = .25;
   }
-  const F3 = floors[2], y3 = fy(2);
+  const F3 = floors[1], y3 = fy(1);
   const door3 = new THREE.Group(); door3.position.set(px(26), y3, pz(40)); F3.add(door3);
   const door3Mesh = B(door3, .02, 1.25, 6 * S, M.acrylic, 0, .625, 3 * S);
   B(door3, .025, 1.25, .025, M.black, 0, .625, 6 * S);
@@ -1269,10 +1463,10 @@ function buildModel(){
   const finger = B(F3, .14, .06, .12, mat(0x26302f, { emissive: 0x3a8fd6, emissiveIntensity: .25 }), px(28.5), y3 + .39, pz(48));
   const buzz3 = Cyl(F3, .045, .06, M.black, px(24), y3 + 1.0, pz(56) - .05); buzz3.rotation.x = Math.PI / 2;
   lightDev('light3', F3, [[4, 26.3, 92, 26.3], [4.3, 26, 4.3, 76], [91.7, 26, 91.7, 76]], y3 + FH - .02, [60, y3 + 1.1, 44], 8);
-  [['Phòng ngủ', 70, 42], ['Phòng rèm', 15, 38], ['Hiên + bồn hoa', 33, 31], ['Bar', 10, 72], ['Ban công', 32, 79], ['Phòng tắm', 54, 68], ['Lõi cầu thang', 31, 64]].forEach(([t, x, z]) => label(2, t, x, y3 + FH + .2, z));
+  [['Phòng ngủ', 70, 42], ['Phòng rèm', 15, 38], ['Hiên + bồn hoa', 33, 31], ['Bar', 10, 72], ['Ban công', 32, 79], ['Phòng tắm', 54, 68], ['Lõi cầu thang', 31, 64]].forEach(([t, x, z]) => label(1, t, x, y3 + FH + .2, z));
 
   /* ================= TẦNG 2: phòng + sân thượng ================= */
-  { const g = floors[1], y = fy(1);
+  { const g = floors[2], y = fy(2);
     [[4, 26, 92, 60], [4, 60, 20, 76], [20, 60, 42, 66], [42, 60, 64, 76], [82, 60, 92, 76]].forEach(([a, b, c, d]) => plate(g, a, b, c, d, M.slab, y - SL, SL));
     floorT(g, TX.wood, 5, 4, 26, 48, 66, y); floorT(g, TX.wood, 5, 4, 66, 20, 76, y); floorT(g, TX.wood, 5, 42, 66, 48, 76, y);
     wallX(g, 20, 42, 66, y, .4, M.woodDark); wallZ(g, 66, 76, 42, y, .4, M.woodDark);
@@ -1298,7 +1492,7 @@ function buildModel(){
     DR.cur2 = [13, 35].map(x => B(g, .5, .7, .04, M.curtain, px(x), y + .78, pz(75.3)));
     plate(g, 8, 30, 15, 35, mat(0xd9ebf2), y, .35);
   }
-  const F2 = floors[1], y2 = fy(1);
+  const F2 = floors[2], y2 = fy(2);
   B(F2, .02, 1.25, 10 * S, M.acrylic, px(48), y2 + .625, pz(39));
   const smokeMat = mat(0x2f6fd0, { emissive: 0xc23e2c, emissiveIntensity: 0 });
   smokeMat.color.set(0xf4f4f2);
@@ -1313,7 +1507,7 @@ function buildModel(){
   const puffs = [];
   for (let i = 0; i < 34; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(.13 + Math.random() * .12, 8, 6), puffMat); p.position.set(px(8 + Math.random() * 36), y2 + Math.random() * 1.3, pz(30 + Math.random() * 26)); p.userData.v = .2 + Math.random() * .4; F2.add(p); puffs.push(p); }
   lightDev('light2', F2, [[4, 26.3, 48, 26.3], [4.3, 26, 4.3, 76]], y2 + FH - .02, [26, y2 + 1.1, 44], 7);
-  [['Phòng tầng 2', 26, 42], ['Sân thượng', 70, 54], ['Vườn', 80, 32]].forEach(([t, x, z]) => label(1, t, x, y2 + FH + .2, z));
+  [['Phòng tầng 3', 26, 42], ['Sân thượng', 70, 54], ['Vườn', 80, 32]].forEach(([t, x, z]) => label(2, t, x, y2 + FH + .2, z));
 
   /* ================= Mái + pin mặt trời ================= */
   scene.add(roof);
@@ -1354,20 +1548,20 @@ function buildModel(){
   // Thiết bị chỉ có khi mô phỏng: nối mạch thật thì bấm vào chỉ báo là nhà thật không có
   const simDev = (name, tipFn, act) => [() => Sm() ? tipFn() : [name, 'giả lập · chỉ có khi mô phỏng'], () => { if (Sm()) act(); else flash(name + ' chỉ có trong chế độ mô phỏng, nhà thật không lắp.'); }];
   add(0, LIGHTS.light1.hits.concat(LIGHTS.light1.strips), lightTip('light1', 'Đèn tầng 1 (2 dây LED)'), toggleLight('light1'));
-  add(1, LIGHTS.light2.hits.concat(LIGHTS.light2.strips), lightTip('light2', 'Đèn LED tầng 2'), toggleLight('light2'));
-  add(2, LIGHTS.light3.hits.concat(LIGHTS.light3.strips), ...simDev('Đèn tầng 3', lightTip('light3', 'Đèn tầng 3 · giả lập'), toggleLight('light3')));
+  add(2, LIGHTS.light2.hits.concat(LIGHTS.light2.strips), lightTip('light2', 'Đèn LED tầng 3'), toggleLight('light2'));
+  add(1, LIGHTS.light3.hits.concat(LIGHTS.light3.strips), ...simDev('Đèn tầng 2', lightTip('light3', 'Đèn tầng 2 · giả lập'), toggleLight('light3')));
   ['wc1', 'wc2'].forEach((id, i) => add(0, LIGHTS[id].hits.concat(LIGHTS[id].strips), ...simDev('Đèn WC ' + (i + 1), () => ['Đèn WC ' + (i + 1) + ' · giả lập', onOff(isOn(D[id])) + ' · bấm để giả lập có người'], () => Sim.act(id))));
   add(0, [gDoor], () => { const s = get(tree, D.garage.path), w = garageWaiting(s, get(tree, D.garage.cmd)); return ['Cửa cuốn nhà xe', w ? w.toLowerCase() : (s === 'open' ? 'đang mở' : 'đã đóng') + ' · bấm để ' + (s === 'open' ? 'đóng' : 'mở')]; },
       () => { if (backend && backend.pending && backend.pending.garage) return; command('garage', 'toggle'); });
   add(0, [pir, buzz1], () => { const en = get(tree, D.alarm.path) === true; return ['Báo trộm nhà xe · PIR và còi', (en ? 'đang canh gác' : 'đã tắt') + ' · bấm để ' + (en ? 'tắt' : 'bật')]; }, () => command('alarm', 'toggle'));
   add(0, [lcd, dht], () => ['LCD 16x2 · DHT11 (nhà xe)', 'Nhiệt độ ' + (get(tree, 'floor_1/temperature_1') ?? '—') + '°C · độ ẩm ' + (get(tree, 'floor_1/humidity_1') ?? '—') + '%'], () => {});
-  add(0, [keypad, door1Mesh], () => ['Cửa chính · bàn phím 4x4', Sm() ? 'bấm để giả lập nhập đúng mật khẩu' : 'nhập mật khẩu trên bàn phím của mạch'], simOnly('keypad', 'Cửa chính chỉ mở bằng bàn phím mật khẩu tại mạch.'));
+  add(0, [keypad, door1Mesh], () => ['Cửa chính · bàn phím 4x4', Sm() ? 'bấm để nhập mật khẩu (đúng/sai)' : 'nhập mật khẩu trên bàn phím của mạch'], () => { if (!Sm()) return flash('Cửa chính chỉ mở bằng bàn phím mật khẩu tại mạch.'); openPw(); });
   const fanHit = Cyl(F1, .4, .14, M.hit, px(30), FH - .2, pz(36));
   add(0, fan.children.concat([fanHit]), () => { const on = isOn(D.fan1) === true; return ['Quạt tầng 1', (on ? 'đang chạy' : 'đang tắt') + ' · bấm để ' + (on ? 'tắt' : 'bật')]; }, () => command('fan1', 'toggle'));
-  add(1, [smokeBoard, smokeCan], () => { const m = get(tree, D.smoke.mute) === true; return ['Cảm biến khói MQ-2 + còi', 'mức ' + (get(tree, D.smoke.path) ?? '—') + ' · còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt') + ' còi']; }, () => command('smoke', 'toggle'));
-  add(2, [finger, door3Mesh], () => ['Khóa cửa tầng 3 · cảm biến vân tay', Sm() ? 'bấm để giả lập quét đúng vân tay' : 'quét vân tay trên cảm biến của mạch'], simOnly('finger', 'Cửa tầng 3 chỉ mở bằng vân tay tại mạch.'));
-  add(2, [buzz3], () => ['Còi tầng 3', 'bíp khi quét đúng vân tay'], () => {});
-  add(1, [beacon], () => { const m = get(tree, D.smoke.mute) === true; return ['Còi báo khói tầng 2', 'còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt')]; }, () => command('smoke', 'toggle'));
+  add(2, [smokeBoard, smokeCan], () => { const m = get(tree, D.smoke.mute) === true; return ['Cảm biến khói MQ-2 + còi', 'mức ' + (get(tree, D.smoke.path) ?? '—') + ' · còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt') + ' còi']; }, () => command('smoke', 'toggle'));
+  add(1, [finger, door3Mesh], () => ['Khóa cửa tầng 2 · cảm biến vân tay', Sm() ? 'bấm để giả lập quét đúng vân tay' : 'quét vân tay trên cảm biến của mạch'], simOnly('finger', 'Cửa tầng 2 chỉ mở bằng vân tay tại mạch.'));
+  add(1, [buzz3], () => ['Còi tầng 2', 'bíp khi quét đúng vân tay'], () => {});
+  add(2, [beacon], () => { const m = get(tree, D.smoke.mute) === true; return ['Còi báo khói tầng 3', 'còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt')]; }, () => command('smoke', 'toggle'));
   add(-1, cabin.children, () => ['Thang máy · mô phỏng web', 'lệnh được ghi lên Firebase ở chế độ Mạch thật; Arduino UNO hiện chưa nối mạng'], () => {});
 
   /* ===== Âm thanh (tạo bằng Web Audio, không cần file) ===== */
@@ -1401,10 +1595,10 @@ function buildModel(){
   DR.cur3.forEach((c, i) => { c.userData.open = { sx: 1, x: px(i ? 23.5 : 6.5) }; c.userData.shut = { sx: 3.6, x: px(i ? 20.5 : 9.5) }; });
   DR.cur2.forEach((c, i) => { c.userData.open = { sx: .55, x: px(i ? 36.6 : 11.4) }; c.userData.shut = { sx: 2.8, x: px(i ? 31 : 17) }; });
   const curTarget = c => c.userData.state === 'shut' ? c.userData.shut : c.userData.open;
-  deco('cur3', 'Rèm phòng rèm (tầng 3)', 'đang kéo kín', 'đang mở', false, v => DR.cur3.forEach(c => c.userData.state = v ? 'shut' : 'open'));
-  deco('cur2', 'Rèm cửa sổ tầng 2', 'đang kéo kín', 'đang mở', false, v => DR.cur2.forEach(c => c.userData.state = v ? 'shut' : 'open'));
+  deco('cur3', 'Rèm phòng rèm (tầng 2)', 'đang kéo kín', 'đang mở', false, v => DR.cur3.forEach(c => c.userData.state = v ? 'shut' : 'open'));
+  deco('cur2', 'Rèm cửa sổ tầng 3', 'đang kéo kín', 'đang mở', false, v => DR.cur2.forEach(c => c.userData.state = v ? 'shut' : 'open'));
   addDeco(2, 'cur3', DR.cur3); addDeco(1, 'cur2', DR.cur2);
-  // TV trên kệ phòng rèm tầng 3
+  // TV trên kệ phòng rèm tầng 2
   const tvCv = document.createElement('canvas'); tvCv.width = 256; tvCv.height = 144; const tvx = tvCv.getContext('2d');
   const tvGrad = tvx.createLinearGradient(0, 0, 256, 144); tvGrad.addColorStop(0, '#1c6e68'); tvGrad.addColorStop(1, '#3a8fd6'); tvx.fillStyle = tvGrad; tvx.fillRect(0, 0, 256, 144);
   tvx.fillStyle = '#fff'; tvx.font = '700 26px sans-serif'; tvx.fillText('Smart House', 46, 70); tvx.font = '16px sans-serif'; tvx.fillText('Kênh nhà thông minh', 52, 98);
@@ -1412,7 +1606,7 @@ function buildModel(){
   B(F3, .04, .56, .96, M.black, px(5.6), y3 + .66, pz(37));
   const tv = new THREE.Mesh(new THREE.PlaneGeometry(.9, .5), tvOff); tv.rotation.y = Math.PI / 2; tv.position.set(px(5.6) + .025, y3 + .66, pz(37)); F3.add(tv);
   const tvLight = new THREE.PointLight(0x5fb0ff, 0, 2.5, 2); tvLight.position.set(px(8), y3 + .7, pz(37)); F3.add(tvLight);
-  deco('tv', 'TV phòng rèm (tầng 3)', 'đang bật', 'đang tắt', false, v => { tv.material = v ? tvOn : tvOff; tvLight.intensity = v ? .8 : 0; });
+  deco('tv', 'TV phòng rèm (tầng 2)', 'đang bật', 'đang tắt', false, v => { tv.material = v ? tvOn : tvOff; tvLight.intensity = v ? .8 : 0; });
   addDeco(2, 'tv', [tv]);
   // Đèn hồ bơi
   const poolLight = new THREE.PointLight(0x4fd6ff, 0, 5, 2); poolLight.position.set(px(40), .25, pz(11)); F1.add(poolLight);
@@ -1424,7 +1618,7 @@ function buildModel(){
   const lampLight = new THREE.PointLight(0xffc670, 0, 2.2, 2); lampLight.position.set(px(82), .66, pz(51.5)); F1.add(lampLight);
   deco('desk', 'Đèn bàn phòng làm việc', 'đang sáng', 'đang tắt', false, v => { lampMat.emissiveIntensity = v ? 1.6 : 0; lampLight.intensity = v ? 1.2 : 0; });
   addDeco(0, 'desk', lampParts);
-  // Đèn vườn sân thượng tầng 2
+  // Đèn vườn sân thượng tầng 3
   const gardenMat = mat(0xfff6d8, { emissive: 0xffd77a, emissiveIntensity: 0 }), gardenParts = [];
   [68, 78, 88].forEach(x => { gardenParts.push(Cyl(F2, .012, .32, M.black, px(x), y2 + .16, pz(37.5)), Ball(F2, .04, gardenMat, px(x), y2 + .34, pz(37.5))); });
   const gardenLight = new THREE.PointLight(0xffd77a, 0, 4, 2); gardenLight.position.set(px(78), y2 + .45, pz(33)); F2.add(gardenLight);
@@ -1432,7 +1626,7 @@ function buildModel(){
   addDeco(1, 'garden', gardenParts);
   // Biển Bar phát sáng
   const barLight = new THREE.PointLight(0xff4fa8, 0, 3, 2); barLight.position.set(px(10), y3 + .7, pz(67)); F3.add(barLight);
-  deco('bar', 'Biển Bar (tầng 3)', 'đang sáng', 'đang tắt', true, v => { DR.bar.material.color.set(v ? 0xffffff : 0x4a3a44); barLight.intensity = v ? .9 : 0; });
+  deco('bar', 'Biển Bar (tầng 2)', 'đang sáng', 'đang tắt', true, v => { DR.bar.material.color.set(v ? 0xffffff : 0x4a3a44); barLight.intensity = v ? .9 : 0; });
   addDeco(2, 'bar', [DR.bar]);
 
   /* ===== Cửa phòng tự mở khi có người lại gần ===== */
@@ -1472,13 +1666,13 @@ function buildModel(){
     { f: 0, name: 'WC 1', r: [68, 6, 80, 26], dev: ['wc1'], deco: [] },
     { f: 0, name: 'WC 2', r: [80, 6, 92, 26], dev: ['wc2'], deco: [] },
     { f: 0, name: 'Phòng làm việc', r: [60, 26, 92, 76], dev: ['light1'], deco: ['desk'] },
-    { f: 1, name: 'Phòng tầng 2', r: [4, 26, 48, 76], dev: ['light2', 'smoke'], deco: ['cur2'] },
-    { f: 1, name: 'Sân thượng', r: [48, 26, 92, 76], dev: [], deco: ['garden'] },
-    { f: 2, name: 'Phòng rèm', r: [4, 26, 26, 50], dev: ['door3'], deco: ['cur3', 'tv'] },
-    { f: 2, name: 'Góc Bar', r: [4, 50, 18, 81], dev: ['light3'], deco: ['bar'] },
-    { f: 2, name: 'Không gian chung tầng 3', r: [18, 26, 92, 81], dev: ['light3', 'door3'], deco: ['bar'] }
+    { f: 2, name: 'Phòng tầng 3', r: [4, 26, 48, 76], dev: ['light2', 'smoke'], deco: ['cur2'] },
+    { f: 2, name: 'Sân thượng', r: [48, 26, 92, 76], dev: [], deco: ['garden'] },
+    { f: 1, name: 'Phòng rèm', r: [4, 26, 26, 50], dev: ['door3'], deco: ['cur3', 'tv'] },
+    { f: 1, name: 'Góc Bar', r: [4, 50, 18, 81], dev: ['light3'], deco: ['bar'] },
+    { f: 1, name: 'Không gian chung tầng 2', r: [18, 26, 92, 81], dev: ['light3', 'door3'], deco: ['bar'] }
   ];
-  const SHORT = { fan1: 'Quạt T1', light1: 'Đèn T1', alarm: 'Báo trộm', climate: 'DHT11', garage: 'Cửa cuốn', door1: 'Cửa chính', wc1: 'WC 1', wc2: 'WC 2', light2: 'Đèn T2', smoke: 'Báo cháy', light3: 'Đèn T3', door3: 'Khóa vân tay' };
+  const SHORT = { fan1: 'Quạt T1', light1: 'Đèn T1', alarm: 'Báo trộm', climate: 'DHT11', garage: 'Cửa cuốn', door1: 'Cửa chính', wc1: 'WC 1', wc2: 'WC 2', light2: 'Đèn T3', smoke: 'Báo cháy', light3: 'Đèn T2', door3: 'Khóa vân tay' };
   const SIM_FOR = { door1: 'keypad', door3: 'finger', wc1: 'wc1', wc2: 'wc2' };
   const roomOf = id => ROOMS.find(r => r.dev.includes(id));
   const planX = x => x / S + CX, planZ = z => z / S + CZ;
@@ -1498,7 +1692,18 @@ function buildModel(){
     return { text: '', cls: '' };
   }
   const panelEl = $('#room-panel'); let panelRoom = null;
-  function openPanel(r){ panelRoom = r; renderPanel(); }
+  const pwPop = $('#pw-pop'), pwIn = $('#pw-pop-in'); let pwT = null;
+  function openPw(){ closePanel(); clearTimeout(pwT); $('#pw-pop-msg').textContent = ''; pwIn.value = ''; pwPop.hidden = false; pwIn.focus({ preventScroll: true }); }
+  function closePw(){ clearTimeout(pwT); pwPop.hidden = true; }
+  $('#pw-pop-x').addEventListener('click', closePw);
+  // Gõ phím trong ô không điều khiển camera/đi bộ; Esc thì đóng hộp
+  pwIn.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') closePw(); });
+  pwPop.addEventListener('submit', e => {
+    e.preventDefault(); if (backend !== Sim) return closePw();
+    const ok = pwIn.value.trim() === '111#'; Sim.keypad(pwIn.value.trim()); pwIn.value = '';
+    if (ok) pwT = setTimeout(closePw, 1500); else pwIn.focus({ preventScroll: true });
+  });
+  function openPanel(r){ closePw(); panelRoom = r; renderPanel(); }
   function closePanel(){ panelRoom = null; renderPanel(); }
   function renderPanel(){
     if (!panelRoom) { panelEl.hidden = true; panelEl.dataset.html = ''; return; }
@@ -1530,7 +1735,7 @@ function buildModel(){
   });
   const BADGES = [
     ['fan1', 0, 30, FH - .12, 33], ['light1', 0, 14, FH - .02, 27], ['alarm', 0, 6, 1.28, 64.5], ['climate', 0, 6, 1.56, 71], ['garage', 0, 6, 1.18, 54], ['door1', 0, 52, 1.32, 76],
-    ['wc1', 0, 74, 1.32, 16], ['wc2', 0, 86, 1.32, 16], ['light2', 1, 26, fy(1) + 1.2, 40], ['smoke', 1, 34, fy(1) + .38, 44], ['light3', 2, 60, fy(2) + 1.2, 40], ['door3', 2, 26, fy(2) + 1.45, 43]
+    ['wc1', 0, 74, 1.32, 16], ['wc2', 0, 86, 1.32, 16], ['light2', 2, 26, fy(2) + 1.2, 40], ['smoke', 2, 34, fy(2) + .38, 44], ['light3', 1, 60, fy(1) + 1.2, 40], ['door3', 1, 26, fy(1) + 1.45, 43]
   ].map(([id, f, x, y, z]) => {
     const el = document.createElement('button'); el.type = 'button'; el.className = 'm-badge'; el.innerHTML = '<i></i><span></span>';
     el.addEventListener('click', () => { Snd.click(); const d = API_DEVICES[id]; if (!d.readOnly) command(id, 'toggle'); else openPanel(roomOf(id)); });
@@ -1809,7 +2014,7 @@ function buildModel(){
     refreshBadges(); if (panelRoom) renderPanel();
     const msgs = [];
     if (tgt.trig) msgs.push('Báo trộm: có chuyển động ở nhà xe');
-    if (tgt.smokeDet) msgs.push('Báo cháy: có khói ở tầng 2' + (tgt.mute ? ' (còi đã tắt)' : ''));
+    if (tgt.smokeDet) msgs.push('Báo cháy: có khói ở tầng 3' + (tgt.mute ? ' (còi đã tắt)' : ''));
     alertEl.textContent = msgs.join(' · '); alertEl.hidden = !msgs.length; wrap.classList.toggle('alarm', msgs.length > 0);
   }
 
@@ -1845,10 +2050,15 @@ function buildModel(){
     puffMat.opacity = lerp(puffMat.opacity, want, k * .5);
     if (puffMat.opacity > .01) puffs.forEach(p => { p.position.y += p.userData.v * dt; if (p.position.y > y2 + 1.35) p.position.y = y2 + .05; });
     const ey = (elevTarget - 1) * (FH + SL) + .6;
-    if (Math.abs(cabin.position.y - ey) > .01) {
+    const moving = Math.abs(cabin.position.y - ey) > .01;
+    const at = Math.min(3, Math.max(1, Math.round((cabin.position.y - .6) / (FH + SL)) + 1));
+    if (moving ? (!shaftLive || shaftLive.at !== at || shaftLive.tgt !== elevTarget) : shaftLive && Number(get(tree, 'elevator/current_floor')) === elevFloor) {
+      shaftLive = moving ? { at: at, tgt: elevTarget } : null; updateShaft();
+    }
+    if (moving) {
       cabin.position.y += Math.sign(ey - cabin.position.y) * Math.min(1.2 * dt, Math.abs(ey - cabin.position.y));
       if (Math.abs(cabin.position.y - ey) <= .01 && elevFloor !== elevTarget) {
-        elevFloor = elevTarget;
+        elevFloor = elevTarget; shaftLive = { at: elevFloor, tgt: elevFloor }; updateShaft();
         if (elevCallBackend === Api) Api.command('elevator', 'arrived_' + elevFloor);
         else if (elevCallBackend === Sim && backend === Sim) Sim.command('elevator', 'arrived_' + elevFloor);
         elevCallBackend = null;
