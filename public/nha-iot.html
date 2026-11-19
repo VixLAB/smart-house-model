@@ -502,7 +502,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
 
   <section class="card api-card" aria-labelledby="api-title">
     <h2 id="api-title">API thiết bị</h2>
-    <p class="sub">Project Next.js trả lời các route dưới đây. Gửi khóa trong header <code>x-api-key</code> nếu đã đặt <code>SMART_HOME_API_KEY</code>. Đèn WC và đèn tầng 3 chỉ có khi mô phỏng nên không có trong API.</p>
+    <p class="sub">Project Next.js trả lời các route dưới đây. Gửi khóa trong header <code>x-api-key</code> nếu đã đặt <code>SMART_HOME_API_KEY</code>. Đèn WC chỉ có khi mô phỏng nên không có trong API.</p>
     <div class="api-routes">
       <code>GET /api/devices</code><span>Toàn bộ nhánh /home và trạng thái từng thiết bị</span>
       <code>GET /api/devices/{id}</code><span>Trạng thái một thiết bị</span>
@@ -511,7 +511,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
     <div class="table-wrap"><table class="api-table"><thead><tr><th>id</th><th>Tầng</th><th>Thiết bị</th><th>Lệnh</th><th>Đường dẫn Firebase</th></tr></thead><tbody id="api-rows"></tbody></table></div>
   </section>
 
-  <p class="foot">Mỗi ô ghi đường dẫn Firebase nó đọc/ghi, khớp với firmware trong thư mục CODE: <code>floor_1_Duy</code> (quạt, 2 dây LED, cửa chính, cửa cuốn, DHT11), <code>bao_trom_va_do_am</code>, <code>baochay_denl2</code>, <code>van_tay</code>. Đèn WC (<code>den_wc</code>) và đèn tầng 3 chỉ có khi mô phỏng: nhà thật không lắp nên khi nối mạch thật, trên API và app điện thoại không có chúng. Thang máy nằm ở mặt bên phải ngôi nhà; ở chế độ Mạch thật nó đi theo <code>/home/elevator</code> do mạch thang máy báo về.</p>
+  <p class="foot">Mỗi ô ghi đường dẫn Firebase nó đọc/ghi, khớp với firmware trong thư mục CODE: <code>floor_1_Duy</code> (quạt, 2 dây LED, cửa chính, cửa cuốn, DHT11), <code>bao_trom_va_do_am</code>, <code>baochay_denl2</code>, <code>van_tay</code>. Đèn WC (<code>den_wc</code>) chỉ có khi mô phỏng: nhà thật không lắp nên khi nối mạch thật, trên API và app điện thoại không có chúng. Đèn tầng 3 là dây LED trong nhà, mạch <code>van_tay</code> bật/tắt bằng relay. Thang máy nằm trong nhà, sát tường bên phải; ở chế độ Mạch thật nó đi theo <code>/home/elevator</code> do mạch thang máy báo về.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -543,9 +543,10 @@ const API_DEVICES = {
   light2: { floor: 2, kind: 'light', label: 'Đèn LED tầng 2', path: 'floor_2/light_room_2', source: 'baochay_denl2.ino' },
   smoke:  { floor: 2, kind: 'smoke', label: 'Báo cháy (MQ-2)', path: 'floor_2/smoke_level_2', detected: 'floor_2/smoke_detected_2', mute: 'floor_2/buzzer_mute_2', threshold: 120, source: 'baochay_denl2.ino' },
   door3:  { floor: 3, kind: 'door', label: 'Khóa cửa vân tay', path: 'door_status', readOnly: 'Cửa tầng 3 chỉ mở bằng vân tay tại mạch.', source: 'van_tay.ino' },
+  // Dây LED trong nhà tầng 3, mạch van_tay bật/tắt bằng relay (true = sáng)
+  light3: { floor: 3, kind: 'light', label: 'Đèn tầng 3', path: 'light_room_3', source: 'van_tay.ino' },
   wc1:    { floor: 1, kind: 'auto', label: 'Đèn WC 1', path: 'floor_1/wc1_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   wc2:    { floor: 1, kind: 'auto', label: 'Đèn WC 2', path: 'floor_1/wc2_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
-  light3: { floor: 3, kind: 'light', label: 'Đèn tầng 3', path: 'light_room_3', sim: true, source: 'van_tay.ino' },
   elevator: { floor: 1, kind: 'elevator', label: 'Thang máy', path: 'elevator' },
 };
 
@@ -831,7 +832,7 @@ const LOADS = [
   { id:'alarm', label:'Báo trộm canh gác', w:2, on: t => get(t, 'floor_1/alarm_enabled_1') === true },
   { id:'siren', label:'Còi báo trộm, báo cháy', w:15, on: t => get(t, 'floor_1/alarm_triggered_1') === true || (get(t, 'floor_2/smoke_detected_2') === true && get(t, 'floor_2/buzzer_mute_2') !== true) },
   { id:'base', label:'Mạch điều khiển', w:5, note:'ESP8266, Arduino UNO, LCD, cảm biến, luôn bật', on: () => true },
-  { id:'light3', label:'Đèn tầng 3', w:20, sim:true, on: t => get(t, 'light_room_3') === true },
+  { id:'light3', label:'Đèn tầng 3', w:20, on: t => get(t, 'light_room_3') === true },
   { id:'wc1', label:'Đèn WC 1', w:9, sim:true, on: t => get(t, 'floor_1/wc1_light') === true },
   { id:'wc2', label:'Đèn WC 2', w:9, sim:true, on: t => get(t, 'floor_1/wc2_light') === true }
 ];
@@ -1346,8 +1347,8 @@ function buildModel(){
 
   /* ================= TẦNG 1 ================= */
   { const g = floors[0], y = 0;
-    B(g, 110 * S, .24, 86 * S, M.base, px(53), -.12, pz(40));
-    [[-1, -2], [107, -2], [-1, 82], [107, 82]].forEach(([x, z]) => B(g, .12, .4, .12, M.base, px(x), -.44, pz(z)));
+    B(g, 100 * S, .24, 86 * S, M.base, px(48), -.12, pz(40));
+    [[-1, -2], [97, -2], [-1, 82], [97, 82]].forEach(([x, z]) => B(g, .12, .4, .12, M.base, px(x), -.44, pz(z)));
     // Sân, hồ bơi, sàn gỗ đay, bồn cây
     floorT(g, TX.patio, 2, 4, 0, 68, 26, y);
     DR.pool = plate(g, 30, 4, 50, 18, M.water, y + .012, .02);
@@ -1367,7 +1368,7 @@ function buildModel(){
     wallZ(g, 26, 26, 60, y, FH); wallX(g, 60, 68, 26, y, FH);
     wallX(g, 68, 92, 6, y, FH); wallZ(g, 6, 26, 68, y, FH); wallZ(g, 6, 24, 80, y, FH);
     wallX(g, 68, 70, 26, y, FH); wallX(g, 73, 83, 26, y, FH); wallX(g, 86, 92, 26, y, FH);
-    wallZ(g, 6, 46, 92, y, FH); wallZ(g, 58, 76, 92, y, FH); wallZ(g, 46, 58, 92, y + 1.15, .25);  // cửa ra thang máy
+    wallZ(g, 6, 76, 92, y, FH);
     wallX(g, 60, 62, 36, y, FH); wallX(g, 66, 92, 36, y, FH); wallZ(g, 26, 38, 60, y, FH); wallZ(g, 44, 58, 60, y, FH); wallZ(g, 38, 44, 60, y + 1.15, .25); wallX(g, 60, 64, 58, y, FH); wallX(g, 82, 92, 58, y, FH);
     wallX(g, 4, 20, 46, y, FH); wallZ(g, 46, 66, 20, y, FH);
     wallX(g, 4, 46, 76, y, FH); wallX(g, 58, 92, 76, y, FH); wallX(g, 46, 58, 76, y + 1.15, .25);
@@ -1379,8 +1380,8 @@ function buildModel(){
     noSolid = true;
     for (let i = 0; i < 9; i++) { const w = 22 / 9, h = (i + 1) * (FH + SL) / 9; stairMeshes.push(plate(g, 42 - (i + 1) * w, 66, 42 - i * w, 76, M.stair, y, h)); }
     noSolid = false;
-    // Phòng làm việc
-    Cyl(g, .32, .012, M.orange, px(70), .01, pz(42)); plate(g, 74, 48, 84, 54, M.mica, y, .45); plate(g, 77, 49.5, 81, 52.5, M.black, .45, .02); Ball(g, .1, M.grass, px(86), .25, pz(52));
+    // Phòng làm việc (góc x 74..92, z 38..54 là giếng thang máy)
+    Cyl(g, .32, .012, M.orange, px(67), .01, pz(42)); plate(g, 61, 48, 71, 54, M.mica, y, .45); plate(g, 64, 49.5, 68, 52.5, M.black, .45, .02); Ball(g, .1, M.grass, px(72), .25, pz(56));
     // Cục nóng máy lạnh
     B(g, .1, .28, .5, M.mica, px(92) + .08, .9, pz(30)); const acf = Cyl(g, .1, .02, M.flowerPink, px(92) + .14, .9, pz(30)); acf.rotation.z = Math.PI / 2;
   }
@@ -1418,13 +1419,13 @@ function buildModel(){
   lightDev('light1', F1, [[4, 26.5, 60, 26.5], [4.5, 26, 4.5, 46], [60, 36.5, 92, 36.5]], FH - .04, [30, 1.1, 38], 7);
   lightDev('wc1', F1, [[68, 6.5, 80, 6.5]], FH - .04, [74, 1.05, 16], 2.6);
   lightDev('wc2', F1, [[80, 6.5, 92, 6.5]], FH - .04, [86, 1.05, 16], 2.6);
-  [['Phòng khách', 30, 36], ['Nhà xe', 12, 61], ['Bếp', 32, 52], ['Cầu thang', 31, 71], ['Hồ bơi', 40, 11], ['WC 1', 74, 15], ['WC 2', 86, 13], ['Phòng làm việc', 76, 44], ['Sảnh', 54, 66]].forEach(([t, x, z]) => label(0, t, x, FH + .2, z));
+  [['Phòng khách', 30, 36], ['Nhà xe', 12, 61], ['Bếp', 32, 52], ['Cầu thang', 31, 71], ['Hồ bơi', 40, 11], ['WC 1', 74, 15], ['WC 2', 86, 13], ['Phòng làm việc', 66, 44], ['Sảnh', 54, 66]].forEach(([t, x, z]) => label(0, t, x, FH + .2, z));
 
   /* ================= TẦNG 3: tầng tường mica trong ================= */
   { const g = floors[1], y = fy(1);
-    [[4, 26, 92, 60], [4, 60, 20, 76], [42, 60, 92, 76], [20, 60, 42, 66]].forEach(([a, b, c, d]) => { plate(g, a, b, c, d, M.slab, y - SL, SL); floorT(g, TX.peach, 6, a, b, c, d, y); });
+    [[4, 26, 92, 38], [4, 38, 74, 54], [4, 54, 92, 60], [4, 60, 20, 76], [42, 60, 92, 76], [20, 60, 42, 66]].forEach(([a, b, c, d]) => { plate(g, a, b, c, d, M.slab, y - SL, SL); floorT(g, TX.peach, 6, a, b, c, d, y); });
     // Tường ngoài bằng mica trong
-    wallX(g, 4, 92, 26, y, FH, M.acrylic); wallZ(g, 26, 76, 4, y, FH, M.acrylic); wallZ(g, 26, 46, 92, y, FH, M.acrylic); wallZ(g, 58, 76, 92, y, FH, M.acrylic); wallZ(g, 46, 58, 92, y + 1.15, .25, M.acrylic);
+    wallX(g, 4, 92, 26, y, FH, M.acrylic); wallZ(g, 26, 76, 4, y, FH, M.acrylic); wallZ(g, 26, 76, 92, y, FH, M.acrylic);
     wallX(g, 4, 92, 76, y, FH, M.acrylic);
     // Lõi cầu thang chữ U, phòng tắm (cửa ở vách phía thang máy cũ)
     wallX(g, 18, 44, 56, y, FH); wallZ(g, 56, 76, 18, y, FH); wallZ(g, 56, 76, 44, y, FH); wallX(g, 44, 64, 60, y, FH); wallZ(g, 60, 66, 64, y, FH); wallZ(g, 74, 76, 64, y, FH); wallZ(g, 66, 74, 64, y + 1.15, .25);
@@ -1458,42 +1459,42 @@ function buildModel(){
     floorT(g, TX.pinkTile, 2.5, 20, 76, 44, 81, y - .004);
     plate(g, 20, 80.4, 44, 81, M.jute, y, .4); plate(g, 20, 76, 20.6, 81, M.jute, y, .4); plate(g, 43.4, 76, 44, 81, M.jute, y, .4);
     // Phòng ngủ: giường, bàn, ghế
-    plate(g, 78, 32, 88, 48, M.mica, y, .2); plate(g, 78, 32, 88, 33.5, M.woodDark, y, .38); plate(g, 78, 46.5, 88, 48, M.woodDark, y, .3);
+    plate(g, 62, 32, 72, 48, M.mica, y, .2); plate(g, 62, 32, 72, 33.5, M.woodDark, y, .38); plate(g, 62, 46.5, 72, 48, M.woodDark, y, .3);
     plate(g, 44, 38, 58, 47, M.mica, y, .34);
     [[45, 33.5], [53, 33.5], [45, 48], [53, 48]].forEach(([x, z]) => { plate(g, x, z, x + 4, z + 4, M.mica, y, .18); plate(g, x, z < 40 ? z : z + 3.4, x + 4, z < 40 ? z + .6 : z + 4, M.mica, y, .42); });
     plate(g, 30, 46, 36, 50, M.mica, y, .26); plate(g, 31, 51, 35, 54, M.mica, y, .18);
     plate(g, 4.5, 30, 7.5, 44, M.black, y, .32); plate(g, 4.5, 30, 7.5, 44, M.woodDark, y + .32, .02);
     plate(g, 12, 38, 22, 46, M.mica, y, .22); plate(g, 12, 45, 22, 46.5, M.mica, y, .4);
     Cyl(g, .07, .03, M.black, px(4) + .04, y + 1.15, pz(66)).rotation.z = Math.PI / 2;
-    const leaning = B(g, .02, .7, 7 * S, M.woodDark, px(86), y + .35, pz(56)); leaning.rotation.z = .25;
+    const leaning = B(g, .02, .7, 7 * S, M.woodDark, px(86), y + .35, pz(60)); leaning.rotation.z = .25;
   }
   // Tầng 2: phòng rèm, góc Bar, mặt mica
   const F2 = floors[1], y2 = fy(1);
   // Cửa phòng rèm: kính, không khóa. Khóa vân tay nằm ở cửa ra sân thượng tầng 3
   B(F2, .02, 1.25, 6 * S, M.acrylic, px(26), y2 + .625, pz(43));
   // Đèn LED tầng 2 (mạch baochay_denl2)
-  lightDev('light2', F2, [[4, 26.3, 92, 26.3], [4.3, 26, 4.3, 76], [91.7, 26, 91.7, 76]], y2 + FH - .02, [60, y2 + 1.1, 44], 8);
+  lightDev('light2', F2, [[4, 26.3, 92, 26.3], [4.3, 26, 4.3, 76], [91.7, 26, 91.7, 38], [91.7, 54, 91.7, 76]], y2 + FH - .02, [60, y2 + 1.1, 44], 8);
   [['Phòng ngủ', 70, 42], ['Phòng rèm', 15, 38], ['Hiên + bồn hoa', 33, 31], ['Bar', 10, 72], ['Ban công', 32, 79], ['Phòng tắm', 54, 68], ['Lõi cầu thang', 31, 64]].forEach(([t, x, z]) => label(1, t, x, y2 + FH + .2, z));
 
   /* ================= TẦNG 2: phòng + sân thượng ================= */
   { const g = floors[2], y = fy(2);
-    [[4, 26, 92, 60], [4, 60, 20, 76], [20, 60, 42, 66], [42, 60, 92, 76]].forEach(([a, b, c, d]) => plate(g, a, b, c, d, M.slab, y - SL, SL));
+    [[4, 26, 92, 38], [4, 38, 74, 54], [4, 54, 92, 60], [4, 60, 20, 76], [20, 60, 42, 66], [42, 60, 92, 76]].forEach(([a, b, c, d]) => plate(g, a, b, c, d, M.slab, y - SL, SL));
     floorT(g, TX.wood, 5, 4, 26, 48, 66, y); floorT(g, TX.wood, 5, 4, 66, 20, 76, y); floorT(g, TX.wood, 5, 42, 66, 48, 76, y);
     wallX(g, 20, 42, 66, y, .4, M.woodDark); wallZ(g, 66, 76, 42, y, .4, M.woodDark);
-    floorT(g, TX.terrace, 3, 48, 26, 92, 60, y); floorT(g, TX.terrace, 3, 48, 60, 92, 76, y);
+    floorT(g, TX.terrace, 3, 48, 26, 92, 38, y); floorT(g, TX.terrace, 3, 48, 38, 74, 54, y); floorT(g, TX.terrace, 3, 48, 54, 92, 76, y);
     // Phòng: tường mica, vách ngăn bên trong
     wallX(g, 4, 48, 26, y, FH); wallZ(g, 26, 76, 4, y, FH); wallX(g, 4, 48, 76, y, FH);
     wallZ(g, 26, 34, 48, y, FH); wallZ(g, 44, 76, 48, y, FH);
     wallX(g, 4, 30, 58, y, FH * .85);
     // Sân thượng: lan can thấp + cột
-    wallX(g, 48, 92, 26, y, .45); wallZ(g, 26, 46, 92, y, .45); wallZ(g, 58, 76, 92, y, .45); wallX(g, 48, 92, 76, y, .45);
-    [[92, 26], [92, 44], [92, 60], [92, 76], [70, 26], [64, 76]].forEach(([x, z]) => B(g, .1, .6, .1, M.mica, px(x), y + .3, pz(z)));
+    wallX(g, 48, 92, 26, y, .45); wallZ(g, 26, 38, 92, y, .45); wallZ(g, 54, 76, 92, y, .45); wallX(g, 48, 92, 76, y, .45);
+    [[92, 26], [92, 60], [92, 76], [70, 26], [64, 76]].forEach(([x, z]) => B(g, .1, .6, .1, M.mica, px(x), y + .3, pz(z)));
     // Vườn cỏ, hàng rào tre, ao
-    plate(g, 66, 27, 91, 39, M.grass, y, .03);
-    for (let i = 0; i < 18; i++) B(g, .025, .3, .025, M.jute, px(66 + i * .8), y + .15, pz(39));
+    plate(g, 66, 27, 91, 37, M.grass, y, .03);
+    for (let i = 0; i < 18; i++) B(g, .025, .3, .025, M.jute, px(66 + i * .8), y + .15, pz(37));
     Cyl(g, .22, .03, M.water, px(70), y + .04, pz(31));
-    for (let i = 0; i < 10; i++) { const c = new THREE.Mesh(new THREE.ConeGeometry(.05, .25, 6), i % 3 ? M.grass : M.flowerRed); c.position.set(px(74 + Math.random() * 16), y + .16, pz(28 + Math.random() * 9)); g.add(c); }
-    plate(g, 70, 46, 90, 48, M.grass, y, .03);
+    for (let i = 0; i < 10; i++) { const c = new THREE.Mesh(new THREE.ConeGeometry(.05, .25, 6), i % 3 ? M.grass : M.flowerRed); c.position.set(px(74 + Math.random() * 16), y + .16, pz(28 + Math.random() * 8)); g.add(c); }
+    plate(g, 56, 46, 72, 48, M.grass, y, .03);
     Cyl(g, .16, .02, M.mica, px(58), y + .26, pz(54)); Cyl(g, .02, .26, M.mica, px(58), y + .13, pz(54));
     [[54.5, 54], [61.5, 54]].forEach(([x, z]) => { plate(g, x - 1.2, z - 1.2, x + 1.2, z + 1.2, M.mica, y, .14); plate(g, x - 1.2, z - 1.2, x - .9, z + 1.2, M.mica, y, .3); });
     [[51, 29], [62, 74], [52, 72]].forEach(([x, z]) => { Cyl(g, .08, .14, M.mica, px(x), y + .07, pz(z)); const c = new THREE.Mesh(new THREE.ConeGeometry(.1, .3, 7), M.grass); c.position.set(px(x), y + .29, pz(z)); g.add(c); });
@@ -1534,7 +1535,7 @@ function buildModel(){
     const sheetCv = document.createElement('canvas'); sheetCv.width = sheetCv.height = 64; const sc = sheetCv.getContext('2d');
     sc.fillStyle = '#3f5c8c'; sc.fillRect(0, 0, 64, 64); sc.strokeStyle = '#33507d'; sc.lineWidth = 2; for (let i = 0; i < 64; i += 8) { sc.beginPath(); sc.moveTo(0, i); sc.lineTo(64, i); sc.moveTo(i, 0); sc.lineTo(i, 64); sc.stroke(); }
     const sheetTex = new THREE.CanvasTexture(sheetCv); sheetTex.wrapS = sheetTex.wrapT = THREE.RepeatWrapping;
-    [[4, 26, 26, 36], [40, 26, 92, 36], [4, 36, 92, 60], [4, 60, 92, 76]].forEach(([a, b, c, d]) => { const t = sheetTex.clone(); t.needsUpdate = true; t.repeat.set((c - a) / 4, (d - b) / 4); plate(roof, a, b, c, d, new THREE.MeshStandardMaterial({ map: t, roughness: .9 }), ry, .04); });
+    [[4, 26, 26, 36], [40, 26, 92, 36], [4, 36, 92, 38], [4, 38, 74, 54], [4, 54, 92, 60], [4, 60, 92, 76]].forEach(([a, b, c, d]) => { const t = sheetTex.clone(); t.needsUpdate = true; t.repeat.set((c - a) / 4, (d - b) / 4); plate(roof, a, b, c, d, new THREE.MeshStandardMaterial({ map: t, roughness: .9 }), ry, .04); });
     const pvCv = document.createElement('canvas'); pvCv.width = 96; pvCv.height = 128; const pv = pvCv.getContext('2d');
     const pg = pv.createLinearGradient(0, 0, 96, 128); pg.addColorStop(0, '#e6a9d6'); pg.addColorStop(1, '#b49ad8'); pv.fillStyle = pg; pv.fillRect(0, 0, 96, 128);
     pv.strokeStyle = '#ffffff'; pv.lineWidth = 2; for (let x = 0; x <= 96; x += 16) { pv.beginPath(); pv.moveTo(x, 0); pv.lineTo(x, 128); pv.stroke(); } for (let yy = 0; yy <= 128; yy += 16) { pv.beginPath(); pv.moveTo(0, yy); pv.lineTo(96, yy); pv.stroke(); }
@@ -1544,18 +1545,20 @@ function buildModel(){
     [16, 26, 36, 46, 56].forEach(x => panel(x, 36)); [21, 31, 41, 51].forEach(x => panel(x, 50));
   }
 
-  /* ================= Thang máy (Arduino Uno, chỉ mô phỏng) ================= */
+  /* ================= Thang máy ================= */
   const EH = fy(2) + FH + .2;
   const elev = new THREE.Group(); scene.add(elev);
-  // Giếng thang máy gắn ngoài mặt bên phải ngôi nhà (đứng nhìn cửa chính), mỗi tầng vào từ cửa ở tường x = 92
-  B(elev, 12 * S, EH, T, M.elevGlass, px(98), EH / 2, pz(44)); B(elev, T, EH, 16 * S, M.elevGlass, px(104), EH / 2, pz(52));
-  B(elev, 12 * S, EH, T, M.elev, px(98), EH / 2, pz(60));
-  B(elev, 12 * S, .06, 16 * S, M.elev, px(98), EH, pz(52));
-  const cabin = new THREE.Group(); cabin.position.set(px(98), .6, pz(52)); elev.add(cabin);
-  B(cabin, 10 * S, 1.15, 13 * S, M.cabin, 0, 0, 0);
+  // Giếng thang máy trong nhà, sát tường bên phải (đứng nhìn cửa chính), khoảng giữa chiều sâu nhà: x 74..92, z 38..54.
+  // Mặt mica quay vào trong nhà (x = 74, mỗi tầng vào từ phía này) và ra sau; mặt trước và mặt sát tường đặc.
+  // Sàn tầng 2, tầng 3 và mái chừa lỗ đúng chỗ này.
+  B(elev, T, EH, 16 * S, M.elevGlass, px(74), EH / 2, pz(46)); B(elev, 18 * S, EH, T, M.elevGlass, px(83), EH / 2, pz(38));
+  B(elev, 18 * S, EH, T, M.elev, px(83), EH / 2, pz(54)); B(elev, T, EH, 16 * S, M.elev, px(92) - T, EH / 2, pz(46));
+  B(elev, 18 * S, .06, 16 * S, M.elev, px(83), EH, pz(46));
+  const cabin = new THREE.Group(); cabin.position.set(px(83), .6, pz(46)); elev.add(cabin);
+  B(cabin, 15 * S, 1.15, 13 * S, M.cabin, 0, 0, 0);
   let elevFloor = 1, elevTarget = 1;
   let elevCallBackend = null;
-  labels.push({ f: -1, el: Object.assign(document.createElement('span'), { className: 'm-lbl', textContent: 'Thang máy' }), v: new THREE.Vector3(px(98), EH + .3, pz(52)) });
+  labels.push({ f: -1, el: Object.assign(document.createElement('span'), { className: 'm-lbl', textContent: 'Thang máy' }), v: new THREE.Vector3(px(83), EH + .3, pz(46)) });
   labelsEl.appendChild(labels[labels.length - 1].el);
 
   /* ================= Tương tác ================= */
@@ -1569,7 +1572,7 @@ function buildModel(){
   const simDev = (name, tipFn, act) => [() => Sm() ? tipFn() : [name, 'giả lập · chỉ có khi mô phỏng'], () => { if (Sm()) act(); else flash(name + ' chỉ có trong chế độ mô phỏng, nhà thật không lắp.'); }];
   add(0, LIGHTS.light1.hits.concat(LIGHTS.light1.strips), lightTip('light1', 'Đèn tầng 1 (2 dây LED)'), toggleLight('light1'));
   add(1, LIGHTS.light2.hits.concat(LIGHTS.light2.strips), lightTip('light2', 'Đèn LED tầng 2'), toggleLight('light2'));
-  add(2, LIGHTS.light3.hits.concat(LIGHTS.light3.strips), ...simDev('Đèn tầng 3', lightTip('light3', 'Đèn tầng 3 · giả lập'), toggleLight('light3')));
+  add(2, LIGHTS.light3.hits.concat(LIGHTS.light3.strips), lightTip('light3', 'Đèn tầng 3 (dây LED, relay)'), toggleLight('light3'));
   ['wc1', 'wc2'].forEach((id, i) => add(0, LIGHTS[id].hits.concat(LIGHTS[id].strips), ...simDev('Đèn WC ' + (i + 1), () => ['Đèn WC ' + (i + 1) + ' · giả lập', onOff(isOn(D[id])) + ' · bấm để giả lập có người'], () => Sim.act(id))));
   add(0, [gDoor], () => { const s = get(tree, D.garage.path), w = garageWaiting(s, get(tree, D.garage.cmd)); return ['Cửa cuốn nhà xe', w ? w.toLowerCase() : (s === 'open' ? 'đang mở' : 'đã đóng') + ' · bấm để ' + (s === 'open' ? 'đóng' : 'mở')]; },
       () => { if (backend && backend.pending && backend.pending.garage) return; command('garage', 'toggle'); });
@@ -1583,7 +1586,7 @@ function buildModel(){
       () => { if (!Sm()) return flash('Cửa tầng 3 chỉ mở bằng vân tay tại mạch.'); openPanel(roomOf('door3')); });
   add(2, [buzz3], () => ['Còi tầng 3', 'bíp khi quét đúng vân tay'], () => {});
   add(1, [beacon], () => { const m = get(tree, D.smoke.mute) === true; return ['Còi báo khói tầng 2', 'còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt')]; }, () => command('smoke', 'toggle'));
-  add(-1, cabin.children, () => ['Thang máy · mặt bên phải nhà', Sm() ? 'mô phỏng: cabin chạy trên web' : 'mạch thật: cabin đi theo tầng mạch thang máy báo về'], () => {});
+  add(-1, cabin.children, () => ['Thang máy · trong nhà, sát tường phải', Sm() ? 'mô phỏng: cabin chạy trên web' : 'mạch thật: cabin đi theo tầng mạch thang máy báo về'], () => {});
 
   /* ===== Âm thanh (tạo bằng Web Audio, không cần file) ===== */
   const Snd = {
@@ -1635,13 +1638,13 @@ function buildModel(){
   addDeco(0, 'pool', [DR.pool]);
   // Đèn bàn phòng làm việc
   const lampMat = mat(0xfff1d6, { emissive: 0xffc670, emissiveIntensity: 0 });
-  const lampParts = [Cyl(F1, .05, .02, M.black, px(82.5), .47, pz(52.5)), B(F1, .015, .24, .015, M.black, px(82.5), .59, pz(52.5)), Ball(F1, .06, lampMat, px(82.5), .73, pz(52))];
-  const lampLight = new THREE.PointLight(0xffc670, 0, 2.2, 2); lampLight.position.set(px(82), .66, pz(51.5)); F1.add(lampLight);
+  const lampParts = [Cyl(F1, .05, .02, M.black, px(69.5), .47, pz(52.5)), B(F1, .015, .24, .015, M.black, px(69.5), .59, pz(52.5)), Ball(F1, .06, lampMat, px(69.5), .73, pz(52))];
+  const lampLight = new THREE.PointLight(0xffc670, 0, 2.2, 2); lampLight.position.set(px(69), .66, pz(51.5)); F1.add(lampLight);
   deco('desk', 'Đèn bàn phòng làm việc', 'đang sáng', 'đang tắt', false, v => { lampMat.emissiveIntensity = v ? 1.6 : 0; lampLight.intensity = v ? 1.2 : 0; });
   addDeco(0, 'desk', lampParts);
   // Đèn vườn sân thượng tầng 3
   const gardenMat = mat(0xfff6d8, { emissive: 0xffd77a, emissiveIntensity: 0 }), gardenParts = [];
-  [68, 78, 88].forEach(x => { gardenParts.push(Cyl(F3, .012, .32, M.black, px(x), y3 + .16, pz(37.5)), Ball(F3, .04, gardenMat, px(x), y3 + .34, pz(37.5))); });
+  [68, 78, 88].forEach(x => { gardenParts.push(Cyl(F3, .012, .32, M.black, px(x), y3 + .16, pz(36)), Ball(F3, .04, gardenMat, px(x), y3 + .34, pz(36))); });
   const gardenLight = new THREE.PointLight(0xffd77a, 0, 4, 2); gardenLight.position.set(px(78), y3 + .45, pz(33)); F3.add(gardenLight);
   deco('garden', 'Đèn vườn sân thượng', 'đang sáng', 'đang tắt', false, v => { gardenMat.emissiveIntensity = v ? 1.8 : 0; gardenLight.intensity = v ? 1.3 : 0; });
   addDeco(2, 'garden', gardenParts);
@@ -1845,7 +1848,7 @@ function buildModel(){
   const EYE = .78, R = .1, SPEED = 1.5;
   const walkBtn = $('#walk-btn'), walkUi = $('#walk-ui'), walkHint = $('#walk-hint');
   const inStairs = (X, Z) => X >= 20 && X <= 42 && Z >= 66 && Z <= 76;
-  const inElevZone = (X, Z) => X >= 93 && X <= 103 && Z >= 45 && Z <= 59;
+  const inElevZone = (X, Z) => X >= 75 && X <= 91 && Z >= 39 && Z <= 53;
   const cabinAt = f => Math.abs(cabin.position.y - (f * (FH + SL) + .6)) < .02;
   function groundAt(f, x, z){
     const X = planX(x), Z = planZ(z);
@@ -1865,7 +1868,7 @@ function buildModel(){
     objs.push(...cabin.children);
     const hits = ray.intersectObjects(objs, false); if (!hits.length) return null;
     const h = hits[0];
-    if (h.object.parent === cabin) return { x: px(98), z: pz(52), y: cabin.position.y - .6 };
+    if (h.object.parent === cabin) return { x: px(83), z: pz(46), y: cabin.position.y - .6 };
     return { x: h.point.x, z: h.point.z, y: h.point.y };
   }
   let helpT = null;
@@ -1902,7 +1905,7 @@ function buildModel(){
   }
   function blocked(x, z){
     const fy0 = groundAt(walk.f, x, z), lo = fy0 + .08, hi = fy0 + EYE;
-    if (x < px(1) || x > px(105) || z < pz(-1) || z > pz(81)) return true;
+    if (x < px(1) || x > px(95) || z < pz(-1) || z > pz(81)) return true;
     for (const c of colliders) if (c.y1 > lo && c.y0 < hi && x > c.x0 - R && x < c.x1 + R && z > c.z0 - R && z < c.z1 + R) return true;
     return false;
   }
@@ -1984,7 +1987,7 @@ function buildModel(){
       ground = cabin.position.y - .6;
       floors.forEach((g, i) => g.visible = i <= Math.max(walk.f, elevTarget - 1));
       if (cabinAt(elevTarget - 1)) { walk.riding = false; setWalkFloor(elevTarget - 1); ground = fy(walk.f); Snd.ding(); }
-    } else if (Math.hypot(Math.max(0, 93 - X, X - 103), Math.max(0, 45 - Z, Z - 59)) < 5 && elevTarget !== walk.f + 1) {
+    } else if (Math.hypot(Math.max(0, 75 - X, X - 91), Math.max(0, 39 - Z, Z - 53)) < 5 && elevTarget !== walk.f + 1) {
       callElevator(walk.f + 1);
     }
     camera.position.set(walk.x, ground + EYE, walk.z);
