@@ -60,15 +60,15 @@ Sau này đổi router hoặc mật khẩu Wi-Fi thì các mạch không vào đ
 |---|---|---|
 | `cua_chinh` | ESP8266 | Tầng 1: cửa chính (bàn phím 4x4, LCD, động cơ cửa), đèn tầng 1 (relay `light_room_1`) |
 | `bao_trom_va_do_am` | ESP8266 | Tầng 1, ở nhà xe: báo trộm hồng ngoại, còi, DHT11, LCD 16x2 |
-| `baochay_denl2` | ESP8266 | Tầng 3: cảm biến khói MQ-2, còi, đèn LED, nút nhấn |
-| `van_tay` | ESP8266 | Tầng 2: khóa cửa vân tay |
+| `baochay_denl2` | ESP8266 | Tầng 2: cảm biến khói MQ-2, còi, đèn LED, nút nhấn |
+| `van_tay` | ESP8266 | Tầng 3: khóa cửa vân tay (cửa ra sân thượng) |
 | `thang_may` | Arduino Uno | Thang máy 3 tầng: động cơ L298N, nút gọi, công tắc hành trình (không nối mạng) |
 | `led_oled` | ESP8266 | Màn hình chào OLED (không nối mạng) |
 | `nha_xe_moi_nhat` | ESP8266 | Cửa cuốn nhà xe, bản cũ trên mạch riêng. Nay nằm trong `floor_1_Duy` |
 | `den_wc` | ESP8266 | 2 đèn WC tự bật bằng PIR. **Nhà thật không lắp**, trên web chỉ có khi mô phỏng |
 | `floor_1_Duy` | ESP8266 | Bản gộp tầng 1 trên một mạch, thay cho `cua_chinh` + `nha_xe_moi_nhat` + phần DHT11 của `bao_trom_va_do_am`: cửa chính (bàn phím, LCD, servo, còi), cửa garage và quạt (một L298N), đèn tầng 1 gồm 2 dây LED (`light_room_1`, false = sáng), quạt (`fan_room_1`, true = chạy), DHT11 + LCD thứ hai. Sơ đồ chân ở đầu file. Không chạy chung với các mạch nó thay thế |
 
-Đèn tầng 2 (`light_room_3` trong `van_tay`) cũng chỉ có khi mô phỏng. Thiết bị chỉ có khi mô phỏng được đánh dấu `sim: true` trong `src/lib/devices.js`: API, app điện thoại và trang web ở chế độ mạch thật bỏ qua chúng. Lắp thêm thiết bị nào thì bỏ `sim: true` của nó (ở cả `src/lib/devices.js` và bản sao trong `public/nha-iot.html`).
+Đèn tầng 3 (`light_room_3` trong `van_tay`) cũng chỉ có khi mô phỏng. Thiết bị chỉ có khi mô phỏng được đánh dấu `sim: true` trong `src/lib/devices.js`: API, app điện thoại và trang web ở chế độ mạch thật bỏ qua chúng. Lắp thêm thiết bị nào thì bỏ `sim: true` của nó (ở cả `src/lib/devices.js` và bản sao trong `public/nha-iot.html`).
 
 ## Bảo mật và hạn mức Firebase
 

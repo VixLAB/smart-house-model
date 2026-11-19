@@ -290,6 +290,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
 .pw-form input{flex:1;min-width:0;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:inherit;font-family:var(--font-mono)}
 .pw-form small{flex-basis:100%;min-height:1em;font-size:.78rem}
 .pw-form small[data-ok="1"]{color:var(--accent)}.pw-form small[data-ok="0"]{color:var(--danger)}
+.finger-sim .btn{flex:1}
 .m-elev .elev-note{font-size:.68rem;color:var(--muted)}
 @media (max-width:760px){.m-elev .elev-note{display:none}}
 .m-msg{position:absolute;left:50%;top:12px;transform:translateX(-50%);margin:0;max-width:calc(100% - 24px);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:.82rem;text-align:center}
@@ -404,7 +405,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
             <button type="button" data-elev="2" aria-pressed="false">2</button>
             <button type="button" data-elev="3" aria-pressed="false">3</button>
           </div>
-          <small class="elev-note">Mạch thật: ghi lệnh lên Firebase, chưa điều khiển motor</small>
+          <small class="elev-note">Mạch thật: ghi lệnh gọi lên Firebase, cabin theo tầng mạch báo về</small>
         </div>
       </div>
     </section>
@@ -431,11 +432,16 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
             <button class="btn" type="submit">Nhập</button>
             <small id="pw-msg" role="status"></small>
           </form>
-          <button class="btn" type="button" data-sim="finger">Quét đúng vân tay tầng 2</button>
+          <div class="pw-form finger-sim" role="group" aria-labelledby="finger-lbl">
+            <label id="finger-lbl">Cảm biến vân tay cửa tầng 3</label>
+            <button class="btn" type="button" data-sim="finger">Vân tay đúng</button>
+            <button class="btn" type="button" data-sim="finger-bad">Vân tay sai</button>
+            <small id="finger-msg" role="status"></small>
+          </div>
           <button class="btn" type="button" data-sim="wc1">Có người vào WC 1</button>
           <button class="btn" type="button" data-sim="wc2">Có người vào WC 2</button>
           <button class="btn" type="button" data-sim="pir">Có chuyển động ở nhà xe</button>
-          <button class="btn" type="button" data-sim="smoke">Tạo khói tầng 3</button>
+          <button class="btn" type="button" data-sim="smoke">Tạo khói tầng 2</button>
         </div>
       </section>
 
@@ -496,7 +502,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
 
   <section class="card api-card" aria-labelledby="api-title">
     <h2 id="api-title">API thiết bị</h2>
-    <p class="sub">Project Next.js trả lời các route dưới đây. Gửi khóa trong header <code>x-api-key</code> nếu đã đặt <code>SMART_HOME_API_KEY</code>. Đèn WC và đèn tầng 2 chỉ có khi mô phỏng nên không có trong API.</p>
+    <p class="sub">Project Next.js trả lời các route dưới đây. Gửi khóa trong header <code>x-api-key</code> nếu đã đặt <code>SMART_HOME_API_KEY</code>. Đèn WC và đèn tầng 3 chỉ có khi mô phỏng nên không có trong API.</p>
     <div class="api-routes">
       <code>GET /api/devices</code><span>Toàn bộ nhánh /home và trạng thái từng thiết bị</span>
       <code>GET /api/devices/{id}</code><span>Trạng thái một thiết bị</span>
@@ -505,7 +511,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
     <div class="table-wrap"><table class="api-table"><thead><tr><th>id</th><th>Tầng</th><th>Thiết bị</th><th>Lệnh</th><th>Đường dẫn Firebase</th></tr></thead><tbody id="api-rows"></tbody></table></div>
   </section>
 
-  <p class="foot">Mỗi ô ghi đường dẫn Firebase nó đọc/ghi, khớp với firmware trong thư mục CODE: <code>floor_1_Duy</code> (quạt, 2 dây LED, cửa chính, cửa cuốn, DHT11), <code>bao_trom_va_do_am</code>, <code>baochay_denl2</code>, <code>van_tay</code>. Đèn WC (<code>den_wc</code>) và đèn tầng 2 chỉ có khi mô phỏng: nhà thật không lắp nên khi nối mạch thật, trên API và app điện thoại không có chúng. Thang máy chạy Arduino UNO riêng, không nối mạng, trên trang chỉ mô phỏng.</p>
+  <p class="foot">Mỗi ô ghi đường dẫn Firebase nó đọc/ghi, khớp với firmware trong thư mục CODE: <code>floor_1_Duy</code> (quạt, 2 dây LED, cửa chính, cửa cuốn, DHT11), <code>bao_trom_va_do_am</code>, <code>baochay_denl2</code>, <code>van_tay</code>. Đèn WC (<code>den_wc</code>) và đèn tầng 3 chỉ có khi mô phỏng: nhà thật không lắp nên khi nối mạch thật, trên API và app điện thoại không có chúng. Thang máy nằm ở mặt bên phải ngôi nhà; ở chế độ Mạch thật nó đi theo <code>/home/elevator</code> do mạch thang máy báo về.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -534,12 +540,12 @@ const API_DEVICES = {
   garage: { floor: 1, kind: 'garage', label: 'Cửa cuốn nhà xe', path: 'floor_1/garage/status', cmd: 'floor_1/garage/command', source: 'floor_1_Duy.ino' },
   alarm:  { floor: 1, kind: 'alarm', label: 'Báo trộm nhà xe (PIR)', path: 'floor_1/alarm_enabled_1', trig: 'floor_1/alarm_triggered_1', source: 'bao_trom_va_do_am.ino' },
   climate:{ floor: 1, kind: 'sensor', label: 'Nhiệt độ, độ ẩm (DHT11)', path: 'floor_1/temperature_1', humidity: 'floor_1/humidity_1', readOnly: 'Cảm biến chỉ đọc.', source: 'floor_1_Duy.ino' },
-  light2: { floor: 3, kind: 'light', label: 'Đèn LED tầng 3', path: 'floor_2/light_room_2', source: 'baochay_denl2.ino' },
-  smoke:  { floor: 3, kind: 'smoke', label: 'Báo cháy (MQ-2)', path: 'floor_2/smoke_level_2', detected: 'floor_2/smoke_detected_2', mute: 'floor_2/buzzer_mute_2', threshold: 120, source: 'baochay_denl2.ino' },
-  door3:  { floor: 2, kind: 'door', label: 'Khóa cửa vân tay', path: 'door_status', readOnly: 'Cửa tầng 2 chỉ mở bằng vân tay tại mạch.', source: 'van_tay.ino' },
+  light2: { floor: 2, kind: 'light', label: 'Đèn LED tầng 2', path: 'floor_2/light_room_2', source: 'baochay_denl2.ino' },
+  smoke:  { floor: 2, kind: 'smoke', label: 'Báo cháy (MQ-2)', path: 'floor_2/smoke_level_2', detected: 'floor_2/smoke_detected_2', mute: 'floor_2/buzzer_mute_2', threshold: 120, source: 'baochay_denl2.ino' },
+  door3:  { floor: 3, kind: 'door', label: 'Khóa cửa vân tay', path: 'door_status', readOnly: 'Cửa tầng 3 chỉ mở bằng vân tay tại mạch.', source: 'van_tay.ino' },
   wc1:    { floor: 1, kind: 'auto', label: 'Đèn WC 1', path: 'floor_1/wc1_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   wc2:    { floor: 1, kind: 'auto', label: 'Đèn WC 2', path: 'floor_1/wc2_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
-  light3: { floor: 2, kind: 'light', label: 'Đèn tầng 2', path: 'light_room_3', sim: true, source: 'van_tay.ino' },
+  light3: { floor: 3, kind: 'light', label: 'Đèn tầng 3', path: 'light_room_3', sim: true, source: 'van_tay.ino' },
   elevator: { floor: 1, kind: 'elevator', label: 'Thang máy', path: 'elevator' },
 };
 
@@ -661,12 +667,12 @@ function resolveAction(home, id, action, opts) {
 /* ===== Thiết bị: đường dẫn tính từ /home, đúng như firmware ===== */
 // sim: chỉ có khi mô phỏng (lấy từ API_DEVICES), ẩn khi nối mạch thật
 const DEVICES = {
-  2: [
-    { id:'door3', kind:'door', label:'Khóa cửa vân tay', path:'door_status' },
-    { id:'light3', kind:'light', label:'Đèn tầng 2', path:'light_room_3' }
-  ],
   3: [
-    { id:'light2', kind:'light', label:'Đèn LED tầng 3', path:'floor_2/light_room_2' },
+    { id:'door3', kind:'door', label:'Khóa cửa vân tay', path:'door_status' },
+    { id:'light3', kind:'light', label:'Đèn tầng 3', path:'light_room_3' }
+  ],
+  2: [
+    { id:'light2', kind:'light', label:'Đèn LED tầng 2', path:'floor_2/light_room_2' },
     { id:'smoke', kind:'smoke', label:'Báo cháy (MQ-2, còi)', path:'floor_2/smoke_level_2', detected:'floor_2/smoke_detected_2', mute:'floor_2/buzzer_mute_2' }
   ],
   1: [
@@ -777,13 +783,13 @@ const RULES = [
   ['floor_1/wc2_light', v => v === true && ['Có người vào WC 2, đèn bật', 'info']],
   ['floor_1/alarm_triggered_1', v => v === true && ['Phát hiện chuyển động ở nhà xe', 'danger']],
   ['floor_1/alarm_enabled_1', v => [v ? 'Bật báo trộm' : 'Tắt báo trộm', 'muted']],
-  ['floor_2/smoke_detected_2', (v, t) => v ? ['Phát hiện khói ở tầng 3 (mức ' + get(t, 'floor_2/smoke_level_2') + ')', 'danger'] : ['Hết khói ở tầng 3', 'ok']],
+  ['floor_2/smoke_detected_2', (v, t) => v ? ['Phát hiện khói ở tầng 2 (mức ' + get(t, 'floor_2/smoke_level_2') + ')', 'danger'] : ['Hết khói ở tầng 2', 'ok']],
   ['floor_2/buzzer_mute_2', v => [v ? 'Tắt còi báo khói' : 'Bật lại còi báo khói', 'muted']],
-  ['door_status', v => v === true && ['Cửa tầng 2 mở bằng vân tay', 'info']],
+  ['door_status', v => v === true && ['Cửa tầng 3 mở bằng vân tay', 'info']],
   ['floor_1/light_room_1', v => [v === false ? 'Đèn tầng 1 bật' : 'Đèn tầng 1 tắt', 'muted']],
   ['floor_1/fan_room_1', v => [v ? 'Quạt tầng 1 bật' : 'Quạt tầng 1 tắt', 'muted']],
-  ['floor_2/light_room_2', v => [v ? 'Đèn LED tầng 3 bật' : 'Đèn LED tầng 3 tắt', 'muted']],
-  ['light_room_3', v => [v ? 'Đèn tầng 2 bật' : 'Đèn tầng 2 tắt', 'muted']],
+  ['floor_2/light_room_2', v => [v ? 'Đèn LED tầng 2 bật' : 'Đèn LED tầng 2 tắt', 'muted']],
+  ['light_room_3', v => [v ? 'Đèn tầng 3 bật' : 'Đèn tầng 3 tắt', 'muted']],
   ['thongbao', v => v && ['Mạch báo: ' + v, 'info']]
 ];
 function log(msg, type){
@@ -821,11 +827,11 @@ const LOADS = [
   { id:'light1', label:'Đèn tầng 1 (2 dây LED)', w:20, on: t => get(t, 'floor_1/light_room_1') === false },
   { id:'fan1', label:'Quạt tầng 1', w:60, on: t => get(t, 'floor_1/fan_room_1') === true },
   { id:'garage', label:'Motor cửa cuốn', w:300, note:'Chạy ' + GARAGE_RUN_S + ' giây mỗi lần mở/đóng' },
-  { id:'light2', label:'Đèn LED tầng 3', w:20, on: t => get(t, 'floor_2/light_room_2') === true },
+  { id:'light2', label:'Đèn LED tầng 2', w:20, on: t => get(t, 'floor_2/light_room_2') === true },
   { id:'alarm', label:'Báo trộm canh gác', w:2, on: t => get(t, 'floor_1/alarm_enabled_1') === true },
   { id:'siren', label:'Còi báo trộm, báo cháy', w:15, on: t => get(t, 'floor_1/alarm_triggered_1') === true || (get(t, 'floor_2/smoke_detected_2') === true && get(t, 'floor_2/buzzer_mute_2') !== true) },
   { id:'base', label:'Mạch điều khiển', w:5, note:'ESP8266, Arduino UNO, LCD, cảm biến, luôn bật', on: () => true },
-  { id:'light3', label:'Đèn tầng 2', w:20, sim:true, on: t => get(t, 'light_room_3') === true },
+  { id:'light3', label:'Đèn tầng 3', w:20, sim:true, on: t => get(t, 'light_room_3') === true },
   { id:'wc1', label:'Đèn WC 1', w:9, sim:true, on: t => get(t, 'floor_1/wc1_light') === true },
   { id:'wc2', label:'Đèn WC 2', w:9, sim:true, on: t => get(t, 'floor_1/wc2_light') === true }
 ];
@@ -1094,12 +1100,19 @@ const Sim = {
     ['#pw-msg', '#pw-pop-msg'].forEach(q => { const m = $(q); if (m) { m.dataset.ok = ok ? 1 : 0; m.textContent = ok ? 'Đúng mật khẩu, cửa chính mở.' : 'Sai mật khẩu, thử lại.'; } });
     if (ok) this.act('keypad-ok'); else log('Nhập sai mật khẩu cửa chính, cửa vẫn đóng', 'danger');
   },
+  // Vân tay giống van_tay.ino: đúng thì còi bíp, bật đèn tầng 3, mở cửa 2 giây; sai thì mạch không ghi gì, cửa vẫn khóa.
+  finger(ok){
+    const m = $('#finger-msg'); if (m) { m.dataset.ok = ok ? 1 : 0; m.textContent = ok ? 'Vân tay đúng, cửa tầng 3 mở.' : 'Vân tay sai, cửa tầng 3 vẫn khóa.'; }
+    if (ok) { this.set('light_room_3', true); this.set('door_status', true); this.later(2000, () => this.set('door_status', false)); }
+    else { this.fingerBadAt = performance.now(); log('Quét sai vân tay ở cửa tầng 3, cửa vẫn khóa', 'danger'); }
+  },
   later(ms, fn){ setTimeout(() => { if (backend === Sim) fn(); }, ms); },
   act(a){
     // Như cua_chinh: mở cửa chính thì bật đèn tầng 1 (light_room_1 = false)
     if (a === 'keypad') this.keypad();
     if (a === 'keypad-ok') { this.set('floor_1/door_opened_1', true); this.set('floor_1/light_room_1', false); this.later(3000, () => this.set('floor_1/door_opened_1', false)); }
-    if (a === 'finger') { this.set('light_room_3', true); this.set('door_status', true); this.later(2000, () => this.set('door_status', false)); }
+    if (a === 'finger') this.finger(true);
+    if (a === 'finger-bad') this.finger(false);
     if (a === 'wc1' || a === 'wc2') { const p = 'floor_1/' + a + '_light'; this.set(p, true); this.later(3000, () => this.set(p, false)); }
     if (a === 'pir') {
       if (get(this.tree, 'floor_1/alarm_enabled_1') === true) { this.set('floor_1/alarm_triggered_1', true); this.later(3000, () => this.set('floor_1/alarm_triggered_1', false)); }
@@ -1333,8 +1346,8 @@ function buildModel(){
 
   /* ================= TẦNG 1 ================= */
   { const g = floors[0], y = 0;
-    B(g, 100 * S, .24, 86 * S, M.base, px(48), -.12, pz(40));
-    [[-1, -2], [97, -2], [-1, 82], [97, 82]].forEach(([x, z]) => B(g, .12, .4, .12, M.base, px(x), -.44, pz(z)));
+    B(g, 110 * S, .24, 86 * S, M.base, px(53), -.12, pz(40));
+    [[-1, -2], [107, -2], [-1, 82], [107, 82]].forEach(([x, z]) => B(g, .12, .4, .12, M.base, px(x), -.44, pz(z)));
     // Sân, hồ bơi, sàn gỗ đay, bồn cây
     floorT(g, TX.patio, 2, 4, 0, 68, 26, y);
     DR.pool = plate(g, 30, 4, 50, 18, M.water, y + .012, .02);
@@ -1344,7 +1357,7 @@ function buildModel(){
     // Sàn các phòng
     floorT(g, TX.pink, 6, 4, 26, 60, 46, y); floorT(g, TX.wood, 5, 16, 30, 28, 44, y + .004); floorT(g, TX.wood, 5, 38, 34, 48, 44, y + .004);
     floorT(g, TX.pink, 6, 44, 46, 64, 76, y); floorT(g, TX.pink, 6, 20, 46, 44, 66, y); floorT(g, TX.pinkTile, 3, 4, 46, 20, 76, y);
-    floorT(g, TX.pink, 6, 60, 26, 92, 36, y); floorT(g, TX.wood, 5, 60, 36, 92, 58, y); floorT(g, TX.pink, 6, 82, 58, 92, 76, y);
+    floorT(g, TX.pink, 6, 60, 26, 92, 36, y); floorT(g, TX.wood, 5, 60, 36, 92, 58, y); floorT(g, TX.pink, 6, 64, 58, 92, 76, y);
     floorT(g, TX.whiteTile, 2, 68, 6, 80, 26, y); floorT(g, TX.mosaic, 1.5, 80, 6, 92, 26, y);
     // Tường bao và vách
     wallZ(g, 26, 50, 4, y, FH); wallZ(g, 62, 76, 4, y, FH); wallZ(g, 50, 62, 4, y + 1.0, .4);
@@ -1354,10 +1367,10 @@ function buildModel(){
     wallZ(g, 26, 26, 60, y, FH); wallX(g, 60, 68, 26, y, FH);
     wallX(g, 68, 92, 6, y, FH); wallZ(g, 6, 26, 68, y, FH); wallZ(g, 6, 24, 80, y, FH);
     wallX(g, 68, 70, 26, y, FH); wallX(g, 73, 83, 26, y, FH); wallX(g, 86, 92, 26, y, FH);
-    wallZ(g, 6, 76, 92, y, FH);
+    wallZ(g, 6, 46, 92, y, FH); wallZ(g, 58, 76, 92, y, FH); wallZ(g, 46, 58, 92, y + 1.15, .25);  // cửa ra thang máy
     wallX(g, 60, 62, 36, y, FH); wallX(g, 66, 92, 36, y, FH); wallZ(g, 26, 38, 60, y, FH); wallZ(g, 44, 58, 60, y, FH); wallZ(g, 38, 44, 60, y + 1.15, .25); wallX(g, 60, 64, 58, y, FH); wallX(g, 82, 92, 58, y, FH);
     wallX(g, 4, 20, 46, y, FH); wallZ(g, 46, 66, 20, y, FH);
-    wallX(g, 4, 46, 76, y, FH); wallX(g, 58, 64, 76, y, FH); wallX(g, 82, 92, 76, y, FH); wallX(g, 46, 58, 76, y + 1.15, .25);
+    wallX(g, 4, 46, 76, y, FH); wallX(g, 58, 92, 76, y, FH); wallX(g, 46, 58, 76, y + 1.15, .25);
     wallZ(g, 60, 70, 52, y, FH); wallX(g, 52, 60, 60, y, FH);
     const slant = B(g, .03, 1.1, 12 * S, M.mica, px(88), .55, pz(16)); slant.rotation.y = .35;
     // Bếp: kệ chữ L
@@ -1409,17 +1422,17 @@ function buildModel(){
 
   /* ================= TẦNG 3: tầng tường mica trong ================= */
   { const g = floors[1], y = fy(1);
-    [[4, 26, 92, 60], [4, 60, 20, 76], [42, 60, 64, 76], [20, 60, 42, 66], [82, 60, 92, 76]].forEach(([a, b, c, d]) => { plate(g, a, b, c, d, M.slab, y - SL, SL); floorT(g, TX.peach, 6, a, b, c, d, y); });
+    [[4, 26, 92, 60], [4, 60, 20, 76], [42, 60, 92, 76], [20, 60, 42, 66]].forEach(([a, b, c, d]) => { plate(g, a, b, c, d, M.slab, y - SL, SL); floorT(g, TX.peach, 6, a, b, c, d, y); });
     // Tường ngoài bằng mica trong
-    wallX(g, 4, 92, 26, y, FH, M.acrylic); wallZ(g, 26, 76, 4, y, FH, M.acrylic); wallZ(g, 26, 76, 92, y, FH, M.acrylic);
-    wallX(g, 4, 64, 76, y, FH, M.acrylic); wallX(g, 82, 92, 76, y, FH, M.acrylic);
-    // Lõi cầu thang chữ U, phòng tắm cạnh thang máy
-    wallX(g, 18, 44, 56, y, FH); wallZ(g, 56, 76, 18, y, FH); wallZ(g, 56, 76, 44, y, FH); wallX(g, 44, 64, 60, y, FH);
+    wallX(g, 4, 92, 26, y, FH, M.acrylic); wallZ(g, 26, 76, 4, y, FH, M.acrylic); wallZ(g, 26, 46, 92, y, FH, M.acrylic); wallZ(g, 58, 76, 92, y, FH, M.acrylic); wallZ(g, 46, 58, 92, y + 1.15, .25, M.acrylic);
+    wallX(g, 4, 92, 76, y, FH, M.acrylic);
+    // Lõi cầu thang chữ U, phòng tắm (cửa ở vách phía thang máy cũ)
+    wallX(g, 18, 44, 56, y, FH); wallZ(g, 56, 76, 18, y, FH); wallZ(g, 56, 76, 44, y, FH); wallX(g, 44, 64, 60, y, FH); wallZ(g, 60, 66, 64, y, FH); wallZ(g, 74, 76, 64, y, FH); wallZ(g, 66, 74, 64, y + 1.15, .25);
     floorT(g, TX.pinkTile, 2.5, 44, 60, 64, 76, y + .004);
     // Phòng có rèm
     wallX(g, 4, 26, 50, y, FH); wallZ(g, 26, 40, 26, y, FH); wallZ(g, 46, 50, 26, y, FH);
     const rod = Cyl(g, .012, 20 * S, M.blueRod, px(15), y + 1.15, pz(27.5)); rod.rotation.z = Math.PI / 2;
-    DR.cur3 = [6.5, 23.5].map(x => B(g, .3, 1.0, .1, M.curtain, px(x), y + .62, pz(27.6)));
+    DR.cur2 = [6.5, 23.5].map(x => B(g, .3, 1.0, .1, M.curtain, px(x), y + .62, pz(27.6)));
     // Hiên nhỏ có cửa song xám, nóc là bồn hoa
     wallX(g, 26, 40, 36, y, FH); wallZ(g, 26, 36, 40, y, FH);
     plate(g, 26, 26, 40, 36, M.mica, y + FH, .05);
@@ -1454,29 +1467,26 @@ function buildModel(){
     Cyl(g, .07, .03, M.black, px(4) + .04, y + 1.15, pz(66)).rotation.z = Math.PI / 2;
     const leaning = B(g, .02, .7, 7 * S, M.woodDark, px(86), y + .35, pz(56)); leaning.rotation.z = .25;
   }
-  const F3 = floors[1], y3 = fy(1);
-  const door3 = new THREE.Group(); door3.position.set(px(26), y3, pz(40)); F3.add(door3);
-  const door3Mesh = B(door3, .02, 1.25, 6 * S, M.acrylic, 0, .625, 3 * S);
-  B(door3, .025, 1.25, .025, M.black, 0, .625, 6 * S);
-  B(F3, .1, .08, .14, M.servo, px(26), y3 + FH + .02, pz(41));
-  B(F3, .14, .36, .14, M.mica, px(28.5), y3 + .18, pz(48));
-  const finger = B(F3, .14, .06, .12, mat(0x26302f, { emissive: 0x3a8fd6, emissiveIntensity: .25 }), px(28.5), y3 + .39, pz(48));
-  const buzz3 = Cyl(F3, .045, .06, M.black, px(24), y3 + 1.0, pz(56) - .05); buzz3.rotation.x = Math.PI / 2;
-  lightDev('light3', F3, [[4, 26.3, 92, 26.3], [4.3, 26, 4.3, 76], [91.7, 26, 91.7, 76]], y3 + FH - .02, [60, y3 + 1.1, 44], 8);
-  [['Phòng ngủ', 70, 42], ['Phòng rèm', 15, 38], ['Hiên + bồn hoa', 33, 31], ['Bar', 10, 72], ['Ban công', 32, 79], ['Phòng tắm', 54, 68], ['Lõi cầu thang', 31, 64]].forEach(([t, x, z]) => label(1, t, x, y3 + FH + .2, z));
+  // Tầng 2: phòng rèm, góc Bar, mặt mica
+  const F2 = floors[1], y2 = fy(1);
+  // Cửa phòng rèm: kính, không khóa. Khóa vân tay nằm ở cửa ra sân thượng tầng 3
+  B(F2, .02, 1.25, 6 * S, M.acrylic, px(26), y2 + .625, pz(43));
+  // Đèn LED tầng 2 (mạch baochay_denl2)
+  lightDev('light2', F2, [[4, 26.3, 92, 26.3], [4.3, 26, 4.3, 76], [91.7, 26, 91.7, 76]], y2 + FH - .02, [60, y2 + 1.1, 44], 8);
+  [['Phòng ngủ', 70, 42], ['Phòng rèm', 15, 38], ['Hiên + bồn hoa', 33, 31], ['Bar', 10, 72], ['Ban công', 32, 79], ['Phòng tắm', 54, 68], ['Lõi cầu thang', 31, 64]].forEach(([t, x, z]) => label(1, t, x, y2 + FH + .2, z));
 
   /* ================= TẦNG 2: phòng + sân thượng ================= */
   { const g = floors[2], y = fy(2);
-    [[4, 26, 92, 60], [4, 60, 20, 76], [20, 60, 42, 66], [42, 60, 64, 76], [82, 60, 92, 76]].forEach(([a, b, c, d]) => plate(g, a, b, c, d, M.slab, y - SL, SL));
+    [[4, 26, 92, 60], [4, 60, 20, 76], [20, 60, 42, 66], [42, 60, 92, 76]].forEach(([a, b, c, d]) => plate(g, a, b, c, d, M.slab, y - SL, SL));
     floorT(g, TX.wood, 5, 4, 26, 48, 66, y); floorT(g, TX.wood, 5, 4, 66, 20, 76, y); floorT(g, TX.wood, 5, 42, 66, 48, 76, y);
     wallX(g, 20, 42, 66, y, .4, M.woodDark); wallZ(g, 66, 76, 42, y, .4, M.woodDark);
-    floorT(g, TX.terrace, 3, 48, 26, 92, 60, y); floorT(g, TX.terrace, 3, 48, 60, 64, 76, y); floorT(g, TX.terrace, 3, 82, 60, 92, 76, y);
+    floorT(g, TX.terrace, 3, 48, 26, 92, 60, y); floorT(g, TX.terrace, 3, 48, 60, 92, 76, y);
     // Phòng: tường mica, vách ngăn bên trong
     wallX(g, 4, 48, 26, y, FH); wallZ(g, 26, 76, 4, y, FH); wallX(g, 4, 48, 76, y, FH);
     wallZ(g, 26, 34, 48, y, FH); wallZ(g, 44, 76, 48, y, FH);
     wallX(g, 4, 30, 58, y, FH * .85);
     // Sân thượng: lan can thấp + cột
-    wallX(g, 48, 92, 26, y, .45); wallZ(g, 26, 76, 92, y, .45); wallX(g, 82, 92, 76, y, .45); wallX(g, 48, 64, 76, y, .45);
+    wallX(g, 48, 92, 26, y, .45); wallZ(g, 26, 46, 92, y, .45); wallZ(g, 58, 76, 92, y, .45); wallX(g, 48, 92, 76, y, .45);
     [[92, 26], [92, 44], [92, 60], [92, 76], [70, 26], [64, 76]].forEach(([x, z]) => B(g, .1, .6, .1, M.mica, px(x), y + .3, pz(z)));
     // Vườn cỏ, hàng rào tre, ao
     plate(g, 66, 27, 91, 39, M.grass, y, .03);
@@ -1489,25 +1499,34 @@ function buildModel(){
     [[51, 29], [62, 74], [52, 72]].forEach(([x, z]) => { Cyl(g, .08, .14, M.mica, px(x), y + .07, pz(z)); const c = new THREE.Mesh(new THREE.ConeGeometry(.1, .3, 7), M.grass); c.position.set(px(x), y + .29, pz(z)); g.add(c); });
     Ball(g, .05, mat(0xf26a3d), px(69.5), y + .06, pz(30.6)); Ball(g, .04, mat(0xffffff), px(70.6), y + .06, pz(31.4));
     const rod2 = Cyl(g, .012, 28 * S, M.woodDark, px(24), y + 1.15, pz(75.4)); rod2.rotation.z = Math.PI / 2;
-    DR.cur2 = [13, 35].map(x => B(g, .5, .7, .04, M.curtain, px(x), y + .78, pz(75.3)));
+    DR.cur3 = [13, 35].map(x => B(g, .5, .7, .04, M.curtain, px(x), y + .78, pz(75.3)));
     plate(g, 8, 30, 15, 35, mat(0xd9ebf2), y, .35);
   }
-  const F2 = floors[2], y2 = fy(2);
-  B(F2, .02, 1.25, 10 * S, M.acrylic, px(48), y2 + .625, pz(39));
+  // Tầng 3: phòng và sân thượng có vườn
+  const F3 = floors[2], y3 = fy(2);
+  // Cửa ra sân thượng có khóa vân tay (mạch van_tay): servo mở cửa, cảm biến vân tay và còi trong phòng
+  const door3 = new THREE.Group(); door3.position.set(px(48), y3, pz(34)); F3.add(door3);
+  const door3Mesh = B(door3, .02, 1.25, 10 * S, M.acrylic, 0, .625, 5 * S);
+  B(door3, .025, 1.25, .025, M.black, 0, .625, 10 * S);
+  B(F3, .1, .08, .14, M.servo, px(48), y3 + FH + .02, pz(35));
+  B(F3, .14, .36, .14, M.mica, px(45.5), y3 + .18, pz(47));
+  const finger = B(F3, .14, .06, .12, mat(0x26302f, { emissive: 0x3a8fd6, emissiveIntensity: .25 }), px(45.5), y3 + .39, pz(47));
+  const buzz3 = Cyl(F3, .045, .06, M.black, px(48) - .05, y3 + 1.0, pz(47)); buzz3.rotation.z = Math.PI / 2;
+  // Báo cháy tầng 2 (mạch baochay_denl2): cảm biến khói MQ-2, còi, đèn nháy, nút nhấn đèn
   const smokeMat = mat(0x2f6fd0, { emissive: 0xc23e2c, emissiveIntensity: 0 });
   smokeMat.color.set(0xf4f4f2);
-  plate(F2, 31, 41, 37, 47, mat(0x6f7478), y2, .015);
-  const smokeBoard = Cyl(F2, .16, .07, smokeMat, px(34), y2 + .05, pz(44));
-  const smokeCan = Cyl(F2, .1, .04, M.silver, px(34), y2 + .1, pz(44));
+  plate(F2, 31, 38, 37, 44, mat(0x6f7478), y2, .015);
+  const smokeBoard = Cyl(F2, .16, .07, smokeMat, px(34), y2 + .05, pz(41));
+  const smokeCan = Cyl(F2, .1, .04, M.silver, px(34), y2 + .1, pz(41));
   const beacon = Cyl(F2, .05, .07, mat(0x1f2124, { emissive: 0xff3b2b, emissiveIntensity: 0 }), px(26), y2 + .95, pz(50));
   B(F2, .008, .42, .008, M.black, px(26), y2 + 1.19, pz(50));
-  B(F2, .08, .08, .03, M.black, px(12), y2 + .7, pz(58) - .04);
+  B(F2, .08, .08, .03, M.black, px(30), y2 + .7, pz(56) - .04);
   const smokeLight = new THREE.PointLight(0xff3b2b, 0, 6, 2); smokeLight.position.set(px(26), y2 + .9, pz(44)); F2.add(smokeLight);
   const puffMat = new THREE.MeshBasicMaterial({ color: 0xb4bcba, transparent: true, opacity: 0, depthWrite: false });
   const puffs = [];
   for (let i = 0; i < 34; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(.13 + Math.random() * .12, 8, 6), puffMat); p.position.set(px(8 + Math.random() * 36), y2 + Math.random() * 1.3, pz(30 + Math.random() * 26)); p.userData.v = .2 + Math.random() * .4; F2.add(p); puffs.push(p); }
-  lightDev('light2', F2, [[4, 26.3, 48, 26.3], [4.3, 26, 4.3, 76]], y2 + FH - .02, [26, y2 + 1.1, 44], 7);
-  [['Phòng tầng 3', 26, 42], ['Sân thượng', 70, 54], ['Vườn', 80, 32]].forEach(([t, x, z]) => label(2, t, x, y2 + FH + .2, z));
+  lightDev('light3', F3, [[4, 26.3, 48, 26.3], [4.3, 26, 4.3, 76]], y3 + FH - .02, [26, y3 + 1.1, 44], 7);
+  [['Phòng tầng 3', 26, 42], ['Sân thượng', 70, 54], ['Vườn', 80, 32]].forEach(([t, x, z]) => label(2, t, x, y3 + FH + .2, z));
 
   /* ================= Mái + pin mặt trời ================= */
   scene.add(roof);
@@ -1515,7 +1534,7 @@ function buildModel(){
     const sheetCv = document.createElement('canvas'); sheetCv.width = sheetCv.height = 64; const sc = sheetCv.getContext('2d');
     sc.fillStyle = '#3f5c8c'; sc.fillRect(0, 0, 64, 64); sc.strokeStyle = '#33507d'; sc.lineWidth = 2; for (let i = 0; i < 64; i += 8) { sc.beginPath(); sc.moveTo(0, i); sc.lineTo(64, i); sc.moveTo(i, 0); sc.lineTo(i, 64); sc.stroke(); }
     const sheetTex = new THREE.CanvasTexture(sheetCv); sheetTex.wrapS = sheetTex.wrapT = THREE.RepeatWrapping;
-    [[4, 26, 26, 36], [40, 26, 92, 36], [4, 36, 92, 60], [4, 60, 64, 76], [82, 60, 92, 76]].forEach(([a, b, c, d]) => { const t = sheetTex.clone(); t.needsUpdate = true; t.repeat.set((c - a) / 4, (d - b) / 4); plate(roof, a, b, c, d, new THREE.MeshStandardMaterial({ map: t, roughness: .9 }), ry, .04); });
+    [[4, 26, 26, 36], [40, 26, 92, 36], [4, 36, 92, 60], [4, 60, 92, 76]].forEach(([a, b, c, d]) => { const t = sheetTex.clone(); t.needsUpdate = true; t.repeat.set((c - a) / 4, (d - b) / 4); plate(roof, a, b, c, d, new THREE.MeshStandardMaterial({ map: t, roughness: .9 }), ry, .04); });
     const pvCv = document.createElement('canvas'); pvCv.width = 96; pvCv.height = 128; const pv = pvCv.getContext('2d');
     const pg = pv.createLinearGradient(0, 0, 96, 128); pg.addColorStop(0, '#e6a9d6'); pg.addColorStop(1, '#b49ad8'); pv.fillStyle = pg; pv.fillRect(0, 0, 96, 128);
     pv.strokeStyle = '#ffffff'; pv.lineWidth = 2; for (let x = 0; x <= 96; x += 16) { pv.beginPath(); pv.moveTo(x, 0); pv.lineTo(x, 128); pv.stroke(); } for (let yy = 0; yy <= 128; yy += 16) { pv.beginPath(); pv.moveTo(0, yy); pv.lineTo(96, yy); pv.stroke(); }
@@ -1528,14 +1547,15 @@ function buildModel(){
   /* ================= Thang máy (Arduino Uno, chỉ mô phỏng) ================= */
   const EH = fy(2) + FH + .2;
   const elev = new THREE.Group(); scene.add(elev);
-  B(elev, 18 * S, EH, T, M.elevGlass, px(73), EH / 2, pz(60)); B(elev, T, EH, 16 * S, M.elevGlass, px(64), EH / 2, pz(68));
-  B(elev, 18 * S, EH, T, M.elev, px(73), EH / 2, pz(76)); B(elev, T, EH, 16 * S, M.elev, px(82), EH / 2, pz(68));
-  B(elev, 18 * S, .06, 16 * S, M.elev, px(73), EH, pz(68));
-  const cabin = new THREE.Group(); cabin.position.set(px(73), .6, pz(68)); elev.add(cabin);
-  B(cabin, 15 * S, 1.15, 13 * S, M.cabin, 0, 0, 0);
+  // Giếng thang máy gắn ngoài mặt bên phải ngôi nhà (đứng nhìn cửa chính), mỗi tầng vào từ cửa ở tường x = 92
+  B(elev, 12 * S, EH, T, M.elevGlass, px(98), EH / 2, pz(44)); B(elev, T, EH, 16 * S, M.elevGlass, px(104), EH / 2, pz(52));
+  B(elev, 12 * S, EH, T, M.elev, px(98), EH / 2, pz(60));
+  B(elev, 12 * S, .06, 16 * S, M.elev, px(98), EH, pz(52));
+  const cabin = new THREE.Group(); cabin.position.set(px(98), .6, pz(52)); elev.add(cabin);
+  B(cabin, 10 * S, 1.15, 13 * S, M.cabin, 0, 0, 0);
   let elevFloor = 1, elevTarget = 1;
   let elevCallBackend = null;
-  labels.push({ f: -1, el: Object.assign(document.createElement('span'), { className: 'm-lbl', textContent: 'Thang máy' }), v: new THREE.Vector3(px(73), EH + .3, pz(68)) });
+  labels.push({ f: -1, el: Object.assign(document.createElement('span'), { className: 'm-lbl', textContent: 'Thang máy' }), v: new THREE.Vector3(px(98), EH + .3, pz(52)) });
   labelsEl.appendChild(labels[labels.length - 1].el);
 
   /* ================= Tương tác ================= */
@@ -1548,8 +1568,8 @@ function buildModel(){
   // Thiết bị chỉ có khi mô phỏng: nối mạch thật thì bấm vào chỉ báo là nhà thật không có
   const simDev = (name, tipFn, act) => [() => Sm() ? tipFn() : [name, 'giả lập · chỉ có khi mô phỏng'], () => { if (Sm()) act(); else flash(name + ' chỉ có trong chế độ mô phỏng, nhà thật không lắp.'); }];
   add(0, LIGHTS.light1.hits.concat(LIGHTS.light1.strips), lightTip('light1', 'Đèn tầng 1 (2 dây LED)'), toggleLight('light1'));
-  add(2, LIGHTS.light2.hits.concat(LIGHTS.light2.strips), lightTip('light2', 'Đèn LED tầng 3'), toggleLight('light2'));
-  add(1, LIGHTS.light3.hits.concat(LIGHTS.light3.strips), ...simDev('Đèn tầng 2', lightTip('light3', 'Đèn tầng 2 · giả lập'), toggleLight('light3')));
+  add(1, LIGHTS.light2.hits.concat(LIGHTS.light2.strips), lightTip('light2', 'Đèn LED tầng 2'), toggleLight('light2'));
+  add(2, LIGHTS.light3.hits.concat(LIGHTS.light3.strips), ...simDev('Đèn tầng 3', lightTip('light3', 'Đèn tầng 3 · giả lập'), toggleLight('light3')));
   ['wc1', 'wc2'].forEach((id, i) => add(0, LIGHTS[id].hits.concat(LIGHTS[id].strips), ...simDev('Đèn WC ' + (i + 1), () => ['Đèn WC ' + (i + 1) + ' · giả lập', onOff(isOn(D[id])) + ' · bấm để giả lập có người'], () => Sim.act(id))));
   add(0, [gDoor], () => { const s = get(tree, D.garage.path), w = garageWaiting(s, get(tree, D.garage.cmd)); return ['Cửa cuốn nhà xe', w ? w.toLowerCase() : (s === 'open' ? 'đang mở' : 'đã đóng') + ' · bấm để ' + (s === 'open' ? 'đóng' : 'mở')]; },
       () => { if (backend && backend.pending && backend.pending.garage) return; command('garage', 'toggle'); });
@@ -1558,11 +1578,12 @@ function buildModel(){
   add(0, [keypad, door1Mesh], () => ['Cửa chính · bàn phím 4x4', Sm() ? 'bấm để nhập mật khẩu (đúng/sai)' : 'nhập mật khẩu trên bàn phím của mạch'], () => { if (!Sm()) return flash('Cửa chính chỉ mở bằng bàn phím mật khẩu tại mạch.'); openPw(); });
   const fanHit = Cyl(F1, .4, .14, M.hit, px(30), FH - .2, pz(36));
   add(0, fan.children.concat([fanHit]), () => { const on = isOn(D.fan1) === true; return ['Quạt tầng 1', (on ? 'đang chạy' : 'đang tắt') + ' · bấm để ' + (on ? 'tắt' : 'bật')]; }, () => command('fan1', 'toggle'));
-  add(2, [smokeBoard, smokeCan], () => { const m = get(tree, D.smoke.mute) === true; return ['Cảm biến khói MQ-2 + còi', 'mức ' + (get(tree, D.smoke.path) ?? '—') + ' · còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt') + ' còi']; }, () => command('smoke', 'toggle'));
-  add(1, [finger, door3Mesh], () => ['Khóa cửa tầng 2 · cảm biến vân tay', Sm() ? 'bấm để giả lập quét đúng vân tay' : 'quét vân tay trên cảm biến của mạch'], simOnly('finger', 'Cửa tầng 2 chỉ mở bằng vân tay tại mạch.'));
-  add(1, [buzz3], () => ['Còi tầng 2', 'bíp khi quét đúng vân tay'], () => {});
-  add(2, [beacon], () => { const m = get(tree, D.smoke.mute) === true; return ['Còi báo khói tầng 3', 'còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt')]; }, () => command('smoke', 'toggle'));
-  add(-1, cabin.children, () => ['Thang máy · mô phỏng web', 'lệnh được ghi lên Firebase ở chế độ Mạch thật; Arduino UNO hiện chưa nối mạng'], () => {});
+  add(1, [smokeBoard, smokeCan], () => { const m = get(tree, D.smoke.mute) === true; return ['Cảm biến khói MQ-2 + còi', 'mức ' + (get(tree, D.smoke.path) ?? '—') + ' · còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt') + ' còi']; }, () => command('smoke', 'toggle'));
+  add(2, [finger, door3Mesh], () => ['Khóa cửa tầng 3 · cảm biến vân tay', (get(tree, D.door3.path) === true ? 'cửa đang mở' : 'cửa đang khóa') + (Sm() ? ' · bấm để thử vân tay đúng hoặc sai' : ' · quét vân tay trên cảm biến của mạch')],
+      () => { if (!Sm()) return flash('Cửa tầng 3 chỉ mở bằng vân tay tại mạch.'); openPanel(roomOf('door3')); });
+  add(2, [buzz3], () => ['Còi tầng 3', 'bíp khi quét đúng vân tay'], () => {});
+  add(1, [beacon], () => { const m = get(tree, D.smoke.mute) === true; return ['Còi báo khói tầng 2', 'còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt')]; }, () => command('smoke', 'toggle'));
+  add(-1, cabin.children, () => ['Thang máy · mặt bên phải nhà', Sm() ? 'mô phỏng: cabin chạy trên web' : 'mạch thật: cabin đi theo tầng mạch thang máy báo về'], () => {});
 
   /* ===== Âm thanh (tạo bằng Web Audio, không cần file) ===== */
   const Snd = {
@@ -1592,22 +1613,22 @@ function buildModel(){
   function decoTip(key){ const d = DECO[key]; return [d.name, (d.on ? d.onText : d.offText) + ' · bấm để đổi · chỉ trên mô hình']; }
   const addDeco = (f, key, objs) => objs.forEach(o => clickables.push({ f, o, tipFn: () => decoTip(key), act: () => toggleDeco(key) }));
   // Rèm: mở thì gom về hai bên, đóng thì kéo kín cửa sổ
-  DR.cur3.forEach((c, i) => { c.userData.open = { sx: 1, x: px(i ? 23.5 : 6.5) }; c.userData.shut = { sx: 3.6, x: px(i ? 20.5 : 9.5) }; });
-  DR.cur2.forEach((c, i) => { c.userData.open = { sx: .55, x: px(i ? 36.6 : 11.4) }; c.userData.shut = { sx: 2.8, x: px(i ? 31 : 17) }; });
+  DR.cur2.forEach((c, i) => { c.userData.open = { sx: 1, x: px(i ? 23.5 : 6.5) }; c.userData.shut = { sx: 3.6, x: px(i ? 20.5 : 9.5) }; });
+  DR.cur3.forEach((c, i) => { c.userData.open = { sx: .55, x: px(i ? 36.6 : 11.4) }; c.userData.shut = { sx: 2.8, x: px(i ? 31 : 17) }; });
   const curTarget = c => c.userData.state === 'shut' ? c.userData.shut : c.userData.open;
-  deco('cur3', 'Rèm phòng rèm (tầng 2)', 'đang kéo kín', 'đang mở', false, v => DR.cur3.forEach(c => c.userData.state = v ? 'shut' : 'open'));
-  deco('cur2', 'Rèm cửa sổ tầng 3', 'đang kéo kín', 'đang mở', false, v => DR.cur2.forEach(c => c.userData.state = v ? 'shut' : 'open'));
-  addDeco(2, 'cur3', DR.cur3); addDeco(1, 'cur2', DR.cur2);
+  deco('cur2', 'Rèm phòng rèm (tầng 2)', 'đang kéo kín', 'đang mở', false, v => DR.cur2.forEach(c => c.userData.state = v ? 'shut' : 'open'));
+  deco('cur3', 'Rèm cửa sổ tầng 3', 'đang kéo kín', 'đang mở', false, v => DR.cur3.forEach(c => c.userData.state = v ? 'shut' : 'open'));
+  addDeco(1, 'cur2', DR.cur2); addDeco(2, 'cur3', DR.cur3);
   // TV trên kệ phòng rèm tầng 2
   const tvCv = document.createElement('canvas'); tvCv.width = 256; tvCv.height = 144; const tvx = tvCv.getContext('2d');
   const tvGrad = tvx.createLinearGradient(0, 0, 256, 144); tvGrad.addColorStop(0, '#1c6e68'); tvGrad.addColorStop(1, '#3a8fd6'); tvx.fillStyle = tvGrad; tvx.fillRect(0, 0, 256, 144);
   tvx.fillStyle = '#fff'; tvx.font = '700 26px sans-serif'; tvx.fillText('Smart House', 46, 70); tvx.font = '16px sans-serif'; tvx.fillText('Kênh nhà thông minh', 52, 98);
   const tvOn = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(tvCv) }), tvOff = new THREE.MeshBasicMaterial({ color: 0x0d0f12 });
-  B(F3, .04, .56, .96, M.black, px(5.6), y3 + .66, pz(37));
-  const tv = new THREE.Mesh(new THREE.PlaneGeometry(.9, .5), tvOff); tv.rotation.y = Math.PI / 2; tv.position.set(px(5.6) + .025, y3 + .66, pz(37)); F3.add(tv);
-  const tvLight = new THREE.PointLight(0x5fb0ff, 0, 2.5, 2); tvLight.position.set(px(8), y3 + .7, pz(37)); F3.add(tvLight);
+  B(F2, .04, .56, .96, M.black, px(5.6), y2 + .66, pz(37));
+  const tv = new THREE.Mesh(new THREE.PlaneGeometry(.9, .5), tvOff); tv.rotation.y = Math.PI / 2; tv.position.set(px(5.6) + .025, y2 + .66, pz(37)); F2.add(tv);
+  const tvLight = new THREE.PointLight(0x5fb0ff, 0, 2.5, 2); tvLight.position.set(px(8), y2 + .7, pz(37)); F2.add(tvLight);
   deco('tv', 'TV phòng rèm (tầng 2)', 'đang bật', 'đang tắt', false, v => { tv.material = v ? tvOn : tvOff; tvLight.intensity = v ? .8 : 0; });
-  addDeco(2, 'tv', [tv]);
+  addDeco(1, 'tv', [tv]);
   // Đèn hồ bơi
   const poolLight = new THREE.PointLight(0x4fd6ff, 0, 5, 2); poolLight.position.set(px(40), .25, pz(11)); F1.add(poolLight);
   deco('pool', 'Đèn hồ bơi', 'đang sáng', 'đang tắt', false, v => { poolLight.intensity = v ? 1.6 : 0; M.water.emissiveIntensity = v ? 1.1 : .25; });
@@ -1620,14 +1641,14 @@ function buildModel(){
   addDeco(0, 'desk', lampParts);
   // Đèn vườn sân thượng tầng 3
   const gardenMat = mat(0xfff6d8, { emissive: 0xffd77a, emissiveIntensity: 0 }), gardenParts = [];
-  [68, 78, 88].forEach(x => { gardenParts.push(Cyl(F2, .012, .32, M.black, px(x), y2 + .16, pz(37.5)), Ball(F2, .04, gardenMat, px(x), y2 + .34, pz(37.5))); });
-  const gardenLight = new THREE.PointLight(0xffd77a, 0, 4, 2); gardenLight.position.set(px(78), y2 + .45, pz(33)); F2.add(gardenLight);
+  [68, 78, 88].forEach(x => { gardenParts.push(Cyl(F3, .012, .32, M.black, px(x), y3 + .16, pz(37.5)), Ball(F3, .04, gardenMat, px(x), y3 + .34, pz(37.5))); });
+  const gardenLight = new THREE.PointLight(0xffd77a, 0, 4, 2); gardenLight.position.set(px(78), y3 + .45, pz(33)); F3.add(gardenLight);
   deco('garden', 'Đèn vườn sân thượng', 'đang sáng', 'đang tắt', false, v => { gardenMat.emissiveIntensity = v ? 1.8 : 0; gardenLight.intensity = v ? 1.3 : 0; });
-  addDeco(1, 'garden', gardenParts);
+  addDeco(2, 'garden', gardenParts);
   // Biển Bar phát sáng
-  const barLight = new THREE.PointLight(0xff4fa8, 0, 3, 2); barLight.position.set(px(10), y3 + .7, pz(67)); F3.add(barLight);
+  const barLight = new THREE.PointLight(0xff4fa8, 0, 3, 2); barLight.position.set(px(10), y2 + .7, pz(67)); F2.add(barLight);
   deco('bar', 'Biển Bar (tầng 2)', 'đang sáng', 'đang tắt', true, v => { DR.bar.material.color.set(v ? 0xffffff : 0x4a3a44); barLight.intensity = v ? .9 : 0; });
-  addDeco(2, 'bar', [DR.bar]);
+  addDeco(1, 'bar', [DR.bar]);
 
   /* ===== Cửa phòng tự mở khi có người lại gần ===== */
   const autoDoors = [], doorMat = mat(0xe8e2d6);
@@ -1666,14 +1687,14 @@ function buildModel(){
     { f: 0, name: 'WC 1', r: [68, 6, 80, 26], dev: ['wc1'], deco: [] },
     { f: 0, name: 'WC 2', r: [80, 6, 92, 26], dev: ['wc2'], deco: [] },
     { f: 0, name: 'Phòng làm việc', r: [60, 26, 92, 76], dev: ['light1'], deco: ['desk'] },
-    { f: 2, name: 'Phòng tầng 3', r: [4, 26, 48, 76], dev: ['light2', 'smoke'], deco: ['cur2'] },
-    { f: 2, name: 'Sân thượng', r: [48, 26, 92, 76], dev: [], deco: ['garden'] },
-    { f: 1, name: 'Phòng rèm', r: [4, 26, 26, 50], dev: ['door3'], deco: ['cur3', 'tv'] },
-    { f: 1, name: 'Góc Bar', r: [4, 50, 18, 81], dev: ['light3'], deco: ['bar'] },
-    { f: 1, name: 'Không gian chung tầng 2', r: [18, 26, 92, 81], dev: ['light3', 'door3'], deco: ['bar'] }
+    { f: 2, name: 'Phòng tầng 3', r: [4, 26, 48, 76], dev: ['light3', 'door3'], deco: ['cur3'] },
+    { f: 2, name: 'Sân thượng', r: [48, 26, 92, 76], dev: ['door3'], deco: ['garden'] },
+    { f: 1, name: 'Phòng rèm', r: [4, 26, 26, 50], dev: [], deco: ['cur2', 'tv'] },
+    { f: 1, name: 'Góc Bar', r: [4, 50, 18, 81], dev: ['light2'], deco: ['bar'] },
+    { f: 1, name: 'Không gian chung tầng 2', r: [18, 26, 92, 81], dev: ['light2', 'smoke'], deco: ['bar'] }
   ];
-  const SHORT = { fan1: 'Quạt T1', light1: 'Đèn T1', alarm: 'Báo trộm', climate: 'DHT11', garage: 'Cửa cuốn', door1: 'Cửa chính', wc1: 'WC 1', wc2: 'WC 2', light2: 'Đèn T3', smoke: 'Báo cháy', light3: 'Đèn T2', door3: 'Khóa vân tay' };
-  const SIM_FOR = { door1: 'keypad', door3: 'finger', wc1: 'wc1', wc2: 'wc2' };
+  const SHORT = { fan1: 'Quạt T1', light1: 'Đèn T1', alarm: 'Báo trộm', climate: 'DHT11', garage: 'Cửa cuốn', door1: 'Cửa chính', wc1: 'WC 1', wc2: 'WC 2', light2: 'Đèn T2', smoke: 'Báo cháy', light3: 'Đèn T3', door3: 'Khóa vân tay' };
+  const SIM_FOR = { door1: 'keypad', wc1: 'wc1', wc2: 'wc2' };
   const roomOf = id => ROOMS.find(r => r.dev.includes(id));
   const planX = x => x / S + CX, planZ = z => z / S + CZ;
   const roomAt = (f, X, Z) => ROOMS.find(r => r.f === f && X >= r.r[0] && X <= r.r[2] && Z >= r.r[1] && Z <= r.r[3]);
@@ -1715,6 +1736,7 @@ function buildModel(){
       if (d.kind === 'light' || d.kind === 'fan' || d.kind === 'alarm') ctrl = '<button class="switch" type="button" data-dev="' + id + '" data-act="toggle" aria-pressed="' + !!st.on + '" aria-label="' + d.label + '"><span></span></button>';
       else if (d.kind === 'smoke') ctrl = '<button class="switch" type="button" data-dev="smoke" data-act="toggle" aria-pressed="' + !!st.on + '" aria-label="Còi báo khói"><span></span></button>';
       else if (d.kind === 'garage') ctrl = '<div class="btns"><button class="btn" type="button" data-dev="garage" data-act="open">Mở</button><button class="btn" type="button" data-dev="garage" data-act="close">Đóng</button></div>';
+      else if (id === 'door3' && Sm()) ctrl = '<div class="btns"><button class="btn" type="button" data-sim="finger">Vân tay đúng</button><button class="btn" type="button" data-sim="finger-bad">Vân tay sai</button></div>';
       else if (SIM_FOR[id] && Sm()) ctrl = '<button class="btn" type="button" data-sim="' + SIM_FOR[id] + '">Giả lập</button>';
       else ctrl = '<small>chỉ đọc</small>';
       h += '<div class="m-row ' + (st.cls === 'alert' ? 'alert' : '') + '"><div>' + d.label + (d.kind === 'smoke' ? ' (công tắc là còi)' : '') + '<small>' + st.text + '</small></div>' + ctrl + '</div>';
@@ -1735,7 +1757,7 @@ function buildModel(){
   });
   const BADGES = [
     ['fan1', 0, 30, FH - .12, 33], ['light1', 0, 14, FH - .02, 27], ['alarm', 0, 6, 1.28, 64.5], ['climate', 0, 6, 1.56, 71], ['garage', 0, 6, 1.18, 54], ['door1', 0, 52, 1.32, 76],
-    ['wc1', 0, 74, 1.32, 16], ['wc2', 0, 86, 1.32, 16], ['light2', 2, 26, fy(2) + 1.2, 40], ['smoke', 2, 34, fy(2) + .38, 44], ['light3', 1, 60, fy(1) + 1.2, 40], ['door3', 1, 26, fy(1) + 1.45, 43]
+    ['wc1', 0, 74, 1.32, 16], ['wc2', 0, 86, 1.32, 16], ['light2', 1, 60, fy(1) + 1.2, 40], ['smoke', 1, 34, fy(1) + .38, 41], ['light3', 2, 26, fy(2) + 1.2, 40], ['door3', 2, 48, fy(2) + 1.45, 39]
   ].map(([id, f, x, y, z]) => {
     const el = document.createElement('button'); el.type = 'button'; el.className = 'm-badge'; el.innerHTML = '<i></i><span></span>';
     el.addEventListener('click', () => { Snd.click(); const d = API_DEVICES[id]; if (!d.readOnly) command(id, 'toggle'); else openPanel(roomOf(id)); });
@@ -1823,7 +1845,7 @@ function buildModel(){
   const EYE = .78, R = .1, SPEED = 1.5;
   const walkBtn = $('#walk-btn'), walkUi = $('#walk-ui'), walkHint = $('#walk-hint');
   const inStairs = (X, Z) => X >= 20 && X <= 42 && Z >= 66 && Z <= 76;
-  const inElevZone = (X, Z) => X >= 65 && X <= 81 && Z >= 61 && Z <= 75;
+  const inElevZone = (X, Z) => X >= 93 && X <= 103 && Z >= 45 && Z <= 59;
   const cabinAt = f => Math.abs(cabin.position.y - (f * (FH + SL) + .6)) < .02;
   function groundAt(f, x, z){
     const X = planX(x), Z = planZ(z);
@@ -1843,7 +1865,7 @@ function buildModel(){
     objs.push(...cabin.children);
     const hits = ray.intersectObjects(objs, false); if (!hits.length) return null;
     const h = hits[0];
-    if (h.object.parent === cabin) return { x: px(73), z: pz(68), y: cabin.position.y - .6 };
+    if (h.object.parent === cabin) return { x: px(98), z: pz(52), y: cabin.position.y - .6 };
     return { x: h.point.x, z: h.point.z, y: h.point.y };
   }
   let helpT = null;
@@ -1880,7 +1902,7 @@ function buildModel(){
   }
   function blocked(x, z){
     const fy0 = groundAt(walk.f, x, z), lo = fy0 + .08, hi = fy0 + EYE;
-    if (x < px(1) || x > px(95) || z < pz(-1) || z > pz(81)) return true;
+    if (x < px(1) || x > px(105) || z < pz(-1) || z > pz(81)) return true;
     for (const c of colliders) if (c.y1 > lo && c.y0 < hi && x > c.x0 - R && x < c.x1 + R && z > c.z0 - R && z < c.z1 + R) return true;
     return false;
   }
@@ -1962,7 +1984,7 @@ function buildModel(){
       ground = cabin.position.y - .6;
       floors.forEach((g, i) => g.visible = i <= Math.max(walk.f, elevTarget - 1));
       if (cabinAt(elevTarget - 1)) { walk.riding = false; setWalkFloor(elevTarget - 1); ground = fy(walk.f); Snd.ding(); }
-    } else if (Math.hypot(Math.max(0, 65 - X, X - 81), Math.max(0, 61 - Z, Z - 75)) < 5 && elevTarget !== walk.f + 1) {
+    } else if (Math.hypot(Math.max(0, 93 - X, X - 103), Math.max(0, 45 - Z, Z - 59)) < 5 && elevTarget !== walk.f + 1) {
       callElevator(walk.f + 1);
     }
     camera.position.set(walk.x, ground + EYE, walk.z);
@@ -2028,7 +2050,7 @@ function buildModel(){
     refreshBadges(); if (panelRoom) renderPanel();
     const msgs = [];
     if (tgt.trig) msgs.push('Báo trộm: có chuyển động ở nhà xe');
-    if (tgt.smokeDet) msgs.push('Báo cháy: có khói ở tầng 3' + (tgt.mute ? ' (còi đã tắt)' : ''));
+    if (tgt.smokeDet) msgs.push('Báo cháy: có khói ở tầng 2' + (tgt.mute ? ' (còi đã tắt)' : ''));
     alertEl.textContent = msgs.join(' · '); alertEl.hidden = !msgs.length; wrap.classList.toggle('alarm', msgs.length > 0);
   }
 
@@ -2039,7 +2061,7 @@ function buildModel(){
     if (document.hidden) return;
     const dt = Math.min(.05, clock.getDelta()), tt = clock.elapsedTime, k = 1 - Math.pow(.002, dt);
     Object.values(LIGHTS).forEach(L => { L.strips.forEach(s => s.material.emissiveIntensity = lerp(s.material.emissiveIntensity, L.on ? 1.8 : 0, k)); L.pl.intensity = lerp(L.pl.intensity, L.on ? (night ? 1.7 : 1.2) : 0, k); });
-    DR.cur3.concat(DR.cur2).forEach(c => { const g = curTarget(c); c.scale.x = lerp(c.scale.x, g.sx, k * .5); c.position.x = lerp(c.position.x, g.x, k * .5); });
+    DR.cur2.concat(DR.cur3).forEach(c => { const g = curTarget(c); c.scale.x = lerp(c.scale.x, g.sx, k * .5); c.position.x = lerp(c.position.x, g.x, k * .5); });
     npcStep(dt);
     autoDoors.forEach(d => {
       const near = (walk.on && walk.f === 0 && Math.hypot(camera.position.x - d.cx, camera.position.z - d.cz) < .6) || (npc.visible && Math.hypot(npc.position.x - d.cx, npc.position.z - d.cz) < .6);
@@ -2050,7 +2072,9 @@ function buildModel(){
     door1.rotation.y = lerp(door1.rotation.y, tgt.door1, k * .6);
     door3.rotation.y = lerp(door3.rotation.y, tgt.door3, k * .6);
     keyLed.material.emissiveIntensity = tgt.door1 ? 2 : 0;
-    finger.material.emissiveIntensity = tgt.door3 ? 2 : .25 + .15 * Math.sin(tt * 2);
+    const fingerBad = Sm() && performance.now() - (Sim.fingerBadAt || -1e9) < 1200;
+    finger.material.emissive.setHex(fingerBad ? 0xff3b2b : 0x3a8fd6);
+    finger.material.emissiveIntensity = fingerBad ? (Math.sin(tt * 18) > 0 ? 2 : .3) : tgt.door3 ? 2 : .25 + .15 * Math.sin(tt * 2);
     gPivot.scale.y = lerp(gPivot.scale.y, tgt.garage, k * .35);
     fanSpeed = lerp(fanSpeed, fanOn ? 9 : 0, k * .25); fan.rotation.y += dt * fanSpeed;
     const blink = Math.sin(tt * 12) > 0;
