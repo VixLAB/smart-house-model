@@ -19,7 +19,8 @@ export const DEVICES = {
   light3: { floor: 3, kind: 'light', label: 'Đèn tầng 3', path: 'light_room_3', source: 'van_tay.ino' },
   wc1:    { floor: 1, kind: 'auto', label: 'Đèn WC 1', path: 'floor_1/wc1_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   wc2:    { floor: 1, kind: 'auto', label: 'Đèn WC 2', path: 'floor_1/wc2_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
-  elevator: { floor: 1, kind: 'elevator', label: 'Thang máy', path: 'elevator' },
+  // Thang máy chỉ chạy giữa tầng 2 và 3: phần cứng không xuống được tầng 1
+  elevator: { floor: 2, kind: 'elevator', label: 'Thang máy', path: 'elevator' },
 };
 
 export const ACTIONS = {
@@ -28,7 +29,7 @@ export const ACTIONS = {
   alarm: ['on', 'off', 'toggle'],
   smoke: ['mute', 'unmute', 'toggle'],
   garage: ['open', 'close', 'toggle'],
-  elevator: ['call_1', 'call_2', 'call_3', 'arrived_1', 'arrived_2', 'arrived_3'],
+  elevator: ['call_2', 'call_3', 'arrived_2', 'arrived_3'],  // thang máy chỉ chạy giữa tầng 2 và 3 (phần cứng không xuống được tầng 1)
 };
 
 export class DeviceError extends Error {

@@ -62,7 +62,7 @@ Sau này đổi router hoặc mật khẩu Wi-Fi thì các mạch không vào đ
 | `bao_trom_va_do_am` | ESP8266 | Tầng 1, ở nhà xe: báo trộm hồng ngoại, còi, DHT11, LCD 16x2 |
 | `baochay_denl2` | ESP8266 | Tầng 2: cảm biến khói MQ-2, còi, đèn LED, nút nhấn |
 | `van_tay` | ESP8266 | Tầng 3: khóa cửa vân tay (cửa ra sân thượng), đèn tầng 3 (dây LED trong nhà qua relay, `light_room_3`, true = sáng) |
-| `thang_may` | Arduino Uno | Thang máy 3 tầng: động cơ L298N, nút gọi, công tắc hành trình (không nối mạng) |
+| `thang_may` | Arduino Uno | Thang máy: động cơ L298N, nút gọi, công tắc hành trình (không nối mạng). Trên mô hình chỉ chạy giữa tầng 2 và 3, phần cứng không xuống được tầng 1 |
 | `led_oled` | ESP8266 | Màn hình chào OLED (không nối mạng) |
 | `nha_xe_moi_nhat` | ESP8266 | Cửa cuốn nhà xe, bản cũ trên mạch riêng. Nay nằm trong `floor_1_Duy` |
 | `den_wc` | ESP8266 | 2 đèn WC tự bật bằng PIR. **Nhà thật không lắp**, trên web chỉ có khi mô phỏng |
@@ -76,7 +76,7 @@ Thiết bị chỉ có khi mô phỏng được đánh dấu `sim: true` trong `
 - **Tự đăng ký tài khoản đã tắt** (Authentication → Settings → User actions). API key nằm công khai trong code, nên nếu bật lại thì ai cũng tạo được tài khoản.
 - **Hạn mức gói Spark miễn phí: tải xuống 10 GB/tháng**, tính cả header HTTP và mã hóa. Vì vậy firmware nhận lệnh qua **stream** (giữ một kết nối, chỉ nhận dữ liệu khi giá trị đổi) và chỉ ghi khi giá trị đổi, không đọc/ghi Firebase ở mỗi vòng `loop()`. Khi sửa firmware, giữ nguyên cách này. Theo dõi mức dùng ở Realtime Database → Usage.
 - Trang web ở chế độ API hỏi `/api/devices` mỗi 1,5 giây và tự ngừng khi tab bị ẩn.
-- Thang máy (`/home/elevator`) có hai chế độ. **Mô phỏng**: cabin chạy trên web, web tự ghi lệnh gọi và lúc đến. **Mạch thật**: nút gọi chỉ ghi `target_floor`, `status = "moving"`, `last_call`; mạch thang máy đọc `target_floor`, chạy motor, tới nơi thì ghi `current_floor` = `target_floor` = tầng vừa tới, `status = "idle"`, `last_arrival_at` (giống lệnh `arrived_N` của API). Cabin và giếng thang trên web đi theo `current_floor` do mạch báo. Arduino UNO trong `firmware/thang_may` chưa nối mạng, nên cần một mạch có Wi-Fi làm việc này; chưa có thì ở chế độ Mạch thật cabin đứng yên.
+- Thang máy (`/home/elevator`) chỉ chạy giữa tầng 2 và 3 (phần cứng không xuống được tầng 1), nên API chỉ nhận `call_2`, `call_3`, `arrived_2`, `arrived_3`. Nó có hai chế độ. **Mô phỏng**: cabin chạy trên web, web tự ghi lệnh gọi và lúc đến. **Mạch thật**: nút gọi chỉ ghi `target_floor`, `status = "moving"`, `last_call`; mạch thang máy đọc `target_floor`, chạy motor, tới nơi thì ghi `current_floor` = `target_floor` = tầng vừa tới, `status = "idle"`, `last_arrival_at` (giống lệnh `arrived_N` của API). Cabin và giếng thang trên web đi theo `current_floor` do mạch báo. Arduino UNO trong `firmware/thang_may` chưa nối mạng, nên cần một mạch có Wi-Fi làm việc này; chưa có thì ở chế độ Mạch thật cabin đứng yên.
 
 ## Đưa lên mạng (tùy chọn)
 

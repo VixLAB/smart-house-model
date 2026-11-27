@@ -97,6 +97,9 @@ details .form-grid{margin-top:10px}
 .shaft-note{font-size:.66rem;color:var(--muted);text-align:center;line-height:1.2}
 .shaft[data-here="1"] .shaft-note{color:var(--accent);font-weight:600}
 .shaft[data-want="1"] .shaft-note{color:var(--amber);font-weight:600;animation:lift-call 1s ease-in-out infinite}
+/* Tầng 1: thang máy không xuống tới (phần cứng chỉ chạy giữa tầng 2 và 3) */
+.shaft.off{background:repeating-linear-gradient(135deg,transparent 0 8px,color-mix(in srgb,var(--line) 70%,transparent) 8px 9px)}
+.house .shaft.off .shaft-note{margin:auto 0;max-width:72px}
 /* Cabin chạy dọc giếng qua cả 3 tầng (màn rộng); màn hẹp vẫn dùng ô cabin-ind từng tầng */
 .house{position:relative}
 .house.has-lift .cabin-ind{display:none!important}
@@ -397,15 +400,14 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
         <div class="m-walk" id="walk-ui" hidden>
           <div class="m-cross" aria-hidden="true"></div>
           <p class="m-hint" id="walk-hint" hidden></p>
-          <p class="m-help">Bấm vào sàn để đi tới · kéo chuột để nhìn quanh · lăn chuột để tiến, lùi · bấm vào đồ vật để điều khiển · bấm lên bậc cầu thang để lên tầng 2 · bấm vào thang máy rồi chọn 1, 2, 3</p>
+          <p class="m-help">Bấm vào sàn để đi tới · kéo chuột để nhìn quanh · lăn chuột để tiến, lùi · bấm vào đồ vật để điều khiển · bấm lên bậc cầu thang để lên tầng 2 · bấm vào thang máy rồi chọn 2 hoặc 3 (thang máy không xuống tầng 1)</p>
         </div>
         <div class="m-elev">Thang máy
-          <div class="seg" role="group" aria-label="Gọi thang máy">
-            <button type="button" data-elev="1" aria-pressed="true">1</button>
-            <button type="button" data-elev="2" aria-pressed="false">2</button>
+          <div class="seg" role="group" aria-label="Gọi thang máy, chỉ tầng 2 và 3">
+            <button type="button" data-elev="2" aria-pressed="true">2</button>
             <button type="button" data-elev="3" aria-pressed="false">3</button>
           </div>
-          <small class="elev-note">Mạch thật: ghi lệnh gọi lên Firebase, cabin theo tầng mạch báo về</small>
+          <small class="elev-note">Chỉ tầng 2 và 3 · mạch thật: ghi lệnh gọi lên Firebase, cabin theo tầng mạch báo về</small>
         </div>
       </div>
     </section>
@@ -493,9 +495,9 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
     <div class="house" aria-label="Mặt cắt ngôi nhà">
       <div class="roof" aria-hidden="true"></div>
       <section class="floor first" aria-labelledby="fl3"><div class="floor-label"><b id="fl3">3</b><span>Tầng 3</span></div><div class="tiles" id="floor-3"></div><div class="shaft" id="shaft-3" data-f="3" role="group" aria-label="Giếng thang máy tầng 3"><div class="cabin-ind"></div><span class="shaft-note">Thang máy</span><div class="hall"><button type="button" class="hall-btn" data-call="3" data-dir="down" aria-label="Gọi thang máy đi xuống tại tầng 3">▼</button></div></div></section>
-      <section class="floor" aria-labelledby="fl2"><div class="floor-label"><b id="fl2">2</b><span>Tầng 2</span></div><div class="tiles" id="floor-2"></div><div class="shaft" id="shaft-2" data-f="2" role="group" aria-label="Giếng thang máy tầng 2"><div class="cabin-ind"></div><span class="shaft-note">Thang máy</span><div class="hall"><button type="button" class="hall-btn" data-call="2" data-dir="up" aria-label="Gọi thang máy đi lên tại tầng 2">▲</button><button type="button" class="hall-btn" data-call="2" data-dir="down" aria-label="Gọi thang máy đi xuống tại tầng 2">▼</button></div></div></section>
-      <section class="floor" aria-labelledby="fl1"><div class="floor-label"><b id="fl1">1</b><span>Tầng 1</span></div><div class="tiles" id="floor-1"></div><div class="shaft" id="shaft-1" data-f="1" role="group" aria-label="Giếng thang máy tầng 1"><div class="cabin-ind"></div><span class="shaft-note">Thang máy</span><div class="hall"><button type="button" class="hall-btn" data-call="1" data-dir="up" aria-label="Gọi thang máy đi lên tại tầng 1">▲</button></div></div></section>
-      <div class="lift open" id="lift"><div class="lift-cable" aria-hidden="true"></div><div class="lift-pad" id="lift-pad" role="group" aria-label="Bảng nút trong cabin" hidden><b>Đi tầng</b><button type="button" data-go="3">3</button><button type="button" data-go="2">2</button><button type="button" data-go="1">1</button><button type="button" data-go="open" aria-label="Mở cửa">◀▶</button></div><div class="lift-cab" role="button" tabindex="0" aria-label="Cabin thang máy, bấm để chọn tầng" aria-haspopup="true" aria-controls="lift-pad"><div class="lift-disp"><i>▲</i><b>1</b></div><div class="lift-door l"></div><div class="lift-door r"></div></div></div>
+      <section class="floor" aria-labelledby="fl2"><div class="floor-label"><b id="fl2">2</b><span>Tầng 2</span></div><div class="tiles" id="floor-2"></div><div class="shaft" id="shaft-2" data-f="2" role="group" aria-label="Giếng thang máy tầng 2"><div class="cabin-ind"></div><span class="shaft-note">Thang máy</span><div class="hall"><button type="button" class="hall-btn" data-call="2" data-dir="up" aria-label="Gọi thang máy đi lên tại tầng 2">▲</button></div></div></section>
+      <section class="floor" aria-labelledby="fl1"><div class="floor-label"><b id="fl1">1</b><span>Tầng 1</span></div><div class="tiles" id="floor-1"></div><div class="shaft off" id="shaft-1" data-f="1" role="group" aria-label="Giếng thang máy tầng 1, thang máy không dừng ở tầng này"><span class="shaft-note">Thang máy không xuống tầng 1</span></div></section>
+      <div class="lift open" id="lift"><div class="lift-cable" aria-hidden="true"></div><div class="lift-pad" id="lift-pad" role="group" aria-label="Bảng nút trong cabin" hidden><b>Đi tầng</b><button type="button" data-go="3">3</button><button type="button" data-go="2">2</button><button type="button" data-go="open" aria-label="Mở cửa">◀▶</button></div><div class="lift-cab" role="button" tabindex="0" aria-label="Cabin thang máy, bấm để chọn tầng" aria-haspopup="true" aria-controls="lift-pad"><div class="lift-disp"><i>▲</i><b>2</b></div><div class="lift-door l"></div><div class="lift-door r"></div></div></div>
       <div class="ground" aria-hidden="true"></div>
     </div>
   </section>
@@ -511,7 +513,7 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
     <div class="table-wrap"><table class="api-table"><thead><tr><th>id</th><th>Tầng</th><th>Thiết bị</th><th>Lệnh</th><th>Đường dẫn Firebase</th></tr></thead><tbody id="api-rows"></tbody></table></div>
   </section>
 
-  <p class="foot">Mỗi ô ghi đường dẫn Firebase nó đọc/ghi, khớp với firmware trong thư mục CODE: <code>floor_1_Duy</code> (quạt, 2 dây LED, cửa chính, cửa cuốn, DHT11), <code>bao_trom_va_do_am</code>, <code>baochay_denl2</code>, <code>van_tay</code>. Đèn WC (<code>den_wc</code>) chỉ có khi mô phỏng: nhà thật không lắp nên khi nối mạch thật, trên API và app điện thoại không có chúng. Đèn tầng 3 là dây LED trong nhà, mạch <code>van_tay</code> bật/tắt bằng relay. Thang máy nằm trong nhà, sát tường bên phải; ở chế độ Mạch thật nó đi theo <code>/home/elevator</code> do mạch thang máy báo về.</p>
+  <p class="foot">Mỗi ô ghi đường dẫn Firebase nó đọc/ghi, khớp với firmware trong thư mục CODE: <code>floor_1_Duy</code> (quạt, 2 dây LED, cửa chính, cửa cuốn, DHT11), <code>bao_trom_va_do_am</code>, <code>baochay_denl2</code>, <code>van_tay</code>. Đèn WC (<code>den_wc</code>) chỉ có khi mô phỏng: nhà thật không lắp nên khi nối mạch thật, trên API và app điện thoại không có chúng. Đèn tầng 3 là dây LED trong nhà, mạch <code>van_tay</code> bật/tắt bằng relay. Thang máy nằm trong nhà, sát tường bên phải, chỉ chạy giữa tầng 2 và 3 (phần cứng không xuống được tầng 1); ở chế độ Mạch thật nó đi theo <code>/home/elevator</code> do mạch thang máy báo về.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -547,7 +549,8 @@ const API_DEVICES = {
   light3: { floor: 3, kind: 'light', label: 'Đèn tầng 3', path: 'light_room_3', source: 'van_tay.ino' },
   wc1:    { floor: 1, kind: 'auto', label: 'Đèn WC 1', path: 'floor_1/wc1_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
   wc2:    { floor: 1, kind: 'auto', label: 'Đèn WC 2', path: 'floor_1/wc2_light', readOnly: 'Đèn WC tự bật bằng cảm biến PIR.', sim: true, source: 'den_wc.ino' },
-  elevator: { floor: 1, kind: 'elevator', label: 'Thang máy', path: 'elevator' },
+  // Thang máy chỉ chạy giữa tầng 2 và 3: phần cứng không xuống được tầng 1
+  elevator: { floor: 2, kind: 'elevator', label: 'Thang máy', path: 'elevator' },
 };
 
 const ACTIONS = {
@@ -556,7 +559,7 @@ const ACTIONS = {
   alarm: ['on', 'off', 'toggle'],
   smoke: ['mute', 'unmute', 'toggle'],
   garage: ['open', 'close', 'toggle'],
-  elevator: ['call_1', 'call_2', 'call_3', 'arrived_1', 'arrived_2', 'arrived_3'],
+  elevator: ['call_2', 'call_3', 'arrived_2', 'arrived_3'],  // thang máy chỉ chạy giữa tầng 2 và 3 (phần cứng không xuống được tầng 1)
 };
 
 class DeviceError extends Error {
@@ -951,13 +954,16 @@ function realOnly(t){
   SIM_PATHS.forEach(p => { const ks = p.split('/'), key = ks.pop(), parent = ks.length ? get(c, ks.join('/')) : c; if (parent && typeof parent === 'object') delete parent[key]; });
   return c;
 }
-/* Giếng thang máy bên phải ngôi nhà: cabin nằm ở tầng current_floor, tầng đích hiện chữ "đang tới" */
+/* Giếng thang máy bên phải ngôi nhà: cabin nằm ở tầng current_floor, tầng đích hiện chữ "đang tới".
+   Thang máy chỉ chạy giữa tầng 2 và 3 (phần cứng không xuống được tầng 1); số tầng khác coi như tầng 2. */
+const liftFloor = n => Number(n) === 3 ? 3 : 2;
 let shaftLive = null;  // {at, tgt} do mô hình 3D báo khi cabin đang chạy; null thì lấy từ Firebase
 function updateShaft(){
-  const cur = shaftLive ? shaftLive.at : Number(get(tree, 'elevator/current_floor')) || 1;
-  const tgt = shaftLive ? shaftLive.tgt : Number(get(tree, 'elevator/target_floor')) || cur;
+  const cur = shaftLive ? shaftLive.at : liftFloor(get(tree, 'elevator/current_floor'));
+  const want = Number(get(tree, 'elevator/target_floor'));
+  const tgt = shaftLive ? shaftLive.tgt : want === 2 || want === 3 ? want : cur;
   Lift.set(cur, tgt);
-  [1, 2, 3].forEach(n => {
+  [2, 3].forEach(n => {
     const el = $('#shaft-' + n); if (!el) return;
     const here = n === cur, want = !here && n === tgt;
     el.dataset.here = here ? 1 : 0; el.dataset.idle = tgt === cur ? 1 : 0; el.dataset.want = want ? 1 : 0;
@@ -972,7 +978,7 @@ const Lift = (() => {
   house.classList.add('has-lift');
   const cab = el.querySelector('.lift-cab'), cable = el.querySelector('.lift-cable'), num = el.querySelector('.lift-disp b'), arrow = el.querySelector('.lift-disp i');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let pos = null, tgt = 1, state = 'open', t0 = 0, raf = 0, top = 0, userCall = false, ac = null;
+  let pos = null, tgt = 2, state = 'open', t0 = 0, raf = 0, top = 0, userCall = false, ac = null;
   const pad = $('#lift-pad');
   function ding(){
     if (!userCall) return; userCall = false;
@@ -985,12 +991,12 @@ const Lift = (() => {
       });
     } catch (e) {}
   }
-  // Gọi thang: dùng chung đường với nút Thang máy 1/2/3 của mô hình 3D để Firebase/mô phỏng nhận lệnh
+  // Gọi thang: dùng chung đường với nút Thang máy 2/3 của mô hình 3D để Firebase/mô phỏng nhận lệnh
   function call(n){
     userCall = true;
     const b = document.querySelector('.m-elev [data-elev="' + n + '"]');
     if (b) b.click();
-    else { command('elevator', 'call_' + n); set(pos == null ? 1 : Math.round(pos), n); }
+    else { command('elevator', 'call_' + n); set(pos == null ? 2 : Math.round(pos), n); }
     if (n === tgt && state === 'open' && Math.round(pos) === n) reopen();
   }
   function reopen(){ el.classList.remove('open'); setTimeout(() => { el.classList.add('open'); ding(); }, 380); }
@@ -1085,7 +1091,7 @@ function localCommand(be, id, action){
 /* ===== Chế độ mô phỏng: hành vi bắt chước firmware ===== */
 const Sim = {
   tree: null, iv: null, boost: 0, pending: {},
-  seed(){ return { floor_1:{ light_room_1:true, fan_room_1:false, door_opened_1:false, garage:{ command:'close', status:'closed' }, wc1_light:false, wc2_light:false, temperature_1:29.4, humidity_1:63, alarm_enabled_1:true, alarm_triggered_1:false }, floor_2:{ light_room_2:false, smoke_level_2:42, smoke_detected_2:false, buzzer_mute_2:false }, elevator:{ current_floor:1, target_floor:1, status:'idle' }, light_room_3:false, door_status:false, thongbao:'' }; },
+  seed(){ return { floor_1:{ light_room_1:true, fan_room_1:false, door_opened_1:false, garage:{ command:'close', status:'closed' }, wc1_light:false, wc2_light:false, temperature_1:29.4, humidity_1:63, alarm_enabled_1:true, alarm_triggered_1:false }, floor_2:{ light_room_2:false, smoke_level_2:42, smoke_detected_2:false, buzzer_mute_2:false }, elevator:{ current_floor:2, target_floor:2, status:'idle' }, light_room_3:false, door_status:false, thongbao:'' }; },
   start(){ if (!this.tree) this.tree = this.seed(); this.pending = {}; clearInterval(this.iv); this.iv = setInterval(() => this.tick(), 2000); this.emit(); },
   stop(){ clearInterval(this.iv); this.iv = null; },
   emit(){ if (backend === Sim) onTree(clone(this.tree)); },
@@ -1554,9 +1560,10 @@ function buildModel(){
   B(elev, T, EH, 16 * S, M.elevGlass, px(74), EH / 2, pz(46)); B(elev, 18 * S, EH, T, M.elevGlass, px(83), EH / 2, pz(38));
   B(elev, 18 * S, EH, T, M.elev, px(83), EH / 2, pz(54)); B(elev, T, EH, 16 * S, M.elev, px(92) - T, EH / 2, pz(46));
   B(elev, 18 * S, .06, 16 * S, M.elev, px(83), EH, pz(46));
-  const cabin = new THREE.Group(); cabin.position.set(px(83), .6, pz(46)); elev.add(cabin);
+  // Cabin chỉ chạy giữa tầng 2 và 3 (phần cứng không xuống được tầng 1), lúc đầu đậu ở tầng 2
+  const cabin = new THREE.Group(); cabin.position.set(px(83), fy(1) + .6, pz(46)); elev.add(cabin);
   B(cabin, 15 * S, 1.15, 13 * S, M.cabin, 0, 0, 0);
-  let elevFloor = 1, elevTarget = 1;
+  let elevFloor = 2, elevTarget = 2;
   let elevCallBackend = null;
   labels.push({ f: -1, el: Object.assign(document.createElement('span'), { className: 'm-lbl', textContent: 'Thang máy' }), v: new THREE.Vector3(px(83), EH + .3, pz(46)) });
   labelsEl.appendChild(labels[labels.length - 1].el);
@@ -1586,7 +1593,7 @@ function buildModel(){
       () => { if (!Sm()) return flash('Cửa tầng 3 chỉ mở bằng vân tay tại mạch.'); openPanel(roomOf('door3')); });
   add(2, [buzz3], () => ['Còi tầng 3', 'bíp khi quét đúng vân tay'], () => {});
   add(1, [beacon], () => { const m = get(tree, D.smoke.mute) === true; return ['Còi báo khói tầng 2', 'còi ' + (m ? 'đã tắt' : 'đang bật') + ' · bấm để ' + (m ? 'bật' : 'tắt')]; }, () => command('smoke', 'toggle'));
-  add(-1, cabin.children, () => ['Thang máy · trong nhà, sát tường phải', Sm() ? 'mô phỏng: cabin chạy trên web' : 'mạch thật: cabin đi theo tầng mạch thang máy báo về'], () => {});
+  add(-1, cabin.children, () => ['Thang máy · chỉ tầng 2 và 3, sát tường phải', Sm() ? 'mô phỏng: cabin chạy trên web' : 'mạch thật: cabin đi theo tầng mạch thang máy báo về'], () => {});
 
   /* ===== Âm thanh (tạo bằng Web Audio, không cần file) ===== */
   const Snd = {
@@ -1844,11 +1851,14 @@ function buildModel(){
   setView(3);
 
   /* ===== Chế độ đi vào nhà (góc nhìn người) ===== */
-  const SPAWN = [{ x: 50, z: 50, yaw: .35 }, { x: 40, z: 70, yaw: 0 }, { x: 64, z: 56, yaw: .45 }];
+  // Tầng 2 xuất hiện cạnh phòng ngủ, nhìn về thang máy (40, 70 cũ nằm trên lỗ cầu thang nên rơi xuống tầng 1)
+  const SPAWN = [{ x: 50, z: 50, yaw: .35 }, { x: 64, z: 57, yaw: -1 }, { x: 64, z: 56, yaw: .45 }];
   const EYE = .78, R = .1, SPEED = 1.5;
   const walkBtn = $('#walk-btn'), walkUi = $('#walk-ui'), walkHint = $('#walk-hint');
   const inStairs = (X, Z) => X >= 20 && X <= 42 && Z >= 66 && Z <= 76;
   const inElevZone = (X, Z) => X >= 75 && X <= 91 && Z >= 39 && Z <= 53;
+  // Giếng thang ở tầng 1 (kể cả bán kính người đi): cabin không xuống tới nên không bước vào được
+  const inShaft1 = (X, Z) => X > 73 && X < 93 && Z > 37 && Z < 55;
   const cabinAt = f => Math.abs(cabin.position.y - (f * (FH + SL) + .6)) < .02;
   function groundAt(f, x, z){
     const X = planX(x), Z = planZ(z);
@@ -1865,7 +1875,7 @@ function buildModel(){
     ray.setFromCamera(ptr, camera);
     const objs = floorMeshes.filter(o => o.f === walk.f || (walk.f <= 1 && o.f <= 1 && floors[o.f].visible)).map(o => o.m);
     if (walk.f <= 1) objs.push(...stairMeshes);
-    objs.push(...cabin.children);
+    if (walk.f >= 1) objs.push(...cabin.children);
     const hits = ray.intersectObjects(objs, false); if (!hits.length) return null;
     const h = hits[0];
     if (h.object.parent === cabin) return { x: px(83), z: pz(46), y: cabin.position.y - .6 };
@@ -1888,6 +1898,7 @@ function buildModel(){
     document.querySelectorAll('[data-view]').forEach(x => x.setAttribute('aria-pressed', Number(x.dataset.view) === f + 1));
   }
   function callElevator(n){
+    if (n !== 2 && n !== 3) { flash('Thang máy chỉ chạy giữa tầng 2 và 3, phần cứng không xuống được tầng 1.'); return; }
     // Mạch thật: chỉ gửi lệnh gọi. Mạch thang máy chạy rồi ghi current_floor, cabin đi theo (xem update)
     if (backend === Api && !walk.on) {
       command('elevator', 'call_' + n);
@@ -1901,11 +1912,12 @@ function buildModel(){
     if (elevTarget === elevFloor) { command('elevator', 'arrived_' + n); return; }
     elevCallBackend = backend;
     command('elevator', 'call_' + n);
-    log('Gọi thang máy lên tầng ' + elevTarget + ' (mô phỏng)', 'muted');
+    log('Gọi thang máy tới tầng ' + elevTarget + ' (mô phỏng)', 'muted');
   }
   function blocked(x, z){
     const fy0 = groundAt(walk.f, x, z), lo = fy0 + .08, hi = fy0 + EYE;
     if (x < px(1) || x > px(95) || z < pz(-1) || z > pz(81)) return true;
+    if (walk.f === 0 && inShaft1(planX(x), planZ(z))) return true;
     for (const c of colliders) if (c.y1 > lo && c.y0 < hi && x > c.x0 - R && x < c.x1 + R && z > c.z0 - R && z < c.z1 + R) return true;
     return false;
   }
@@ -1913,7 +1925,7 @@ function buildModel(){
     stopDest(); walk.f = f; const sp = SPAWN[f]; walk.x = px(sp.x); walk.z = pz(sp.z); walk.yaw = sp.yaw; walk.pitch = -.08;
     view = f + 1; floors.forEach((g, i) => g.visible = i <= f); roof.visible = false;
     document.querySelectorAll('[data-view]').forEach(x => x.setAttribute('aria-pressed', Number(x.dataset.view) === f + 1));
-    elevTarget = f + 1; document.querySelectorAll('[data-elev]').forEach(x => x.setAttribute('aria-pressed', Number(x.dataset.elev) === f + 1));
+    if (f >= 1) { elevTarget = f + 1; document.querySelectorAll('[data-elev]').forEach(x => x.setAttribute('aria-pressed', Number(x.dataset.elev) === f + 1)); }
   }
   function setWalk(on){
     walk.on = on; walkUi.hidden = !on; tip.hidden = true; walkHint.hidden = true; walk.riding = false; highlight(null); closePanel(); stopDest(); ghost.visible = false; wrap.classList.toggle('walking', on); if (on && helpEl) { helpEl.hidden = false; clearTimeout(helpT); helpT = setTimeout(hideHelp, 10000); }
@@ -1938,7 +1950,7 @@ function buildModel(){
     if (KEYMAP[ev.code]) { walk.keys[KEYMAP[ev.code]] = true; ev.preventDefault(); }
     if (ev.code === 'KeyE' || ev.code === 'Enter') { const c = centerPick(); if (c) { c.act(); walk.hintN = 0; } ev.preventDefault(); }
     if (ev.code === 'Escape') setWalk(false);
-    if (/^Digit[123]$/.test(ev.code) && walk.inE) { callElevator(Number(ev.code.slice(-1))); ev.preventDefault(); }
+    if (/^Digit[23]$/.test(ev.code) && walk.inE) { callElevator(Number(ev.code.slice(-1))); ev.preventDefault(); }
   });
   addEventListener('keyup', ev => { if (KEYMAP[ev.code]) walk.keys[KEYMAP[ev.code]] = false; });
   addEventListener('blur', () => { walk.keys = {}; walk.pad = {}; });
@@ -1981,20 +1993,22 @@ function buildModel(){
     else if (walk.f === 1 && inStairs(X, Z) && X > 24) { setWalkFloor(0); floors[1].visible = true; }
     // Thang máy
     walk.inE = inElevZone(X, Z);
+    const nearE = Math.hypot(Math.max(0, 75 - X, X - 91), Math.max(0, 39 - Z, Z - 53)) < 5;
     let ground = groundAt(walk.f, walk.x, walk.z);
     if (walk.riding) {
       stopDest();
       ground = cabin.position.y - .6;
       floors.forEach((g, i) => g.visible = i <= Math.max(walk.f, elevTarget - 1));
       if (cabinAt(elevTarget - 1)) { walk.riding = false; setWalkFloor(elevTarget - 1); ground = fy(walk.f); Snd.ding(); }
-    } else if (Math.hypot(Math.max(0, 75 - X, X - 91), Math.max(0, 39 - Z, Z - 53)) < 5 && elevTarget !== walk.f + 1) {
+    } else if (walk.f >= 1 && nearE && elevTarget !== walk.f + 1) {
       callElevator(walk.f + 1);
     }
     camera.position.set(walk.x, ground + EYE, walk.z);
     camera.rotation.set(walk.pitch, walk.yaw, 0, 'YXZ');
     if (++walk.hintN % 8 === 0) {
       const c = centerPick(); highlight(c);
-      if (walk.inE) { walkHint.textContent = walk.riding ? 'Thang máy đang chạy lên tầng ' + elevTarget + '…' : cabinAt(walk.f) ? 'Trong thang máy · bấm 1, 2 hoặc 3 để chọn tầng' : 'Đang chờ thang máy xuống…'; walkHint.hidden = false; }
+      if (walk.inE) { walkHint.textContent = walk.riding ? 'Thang máy đang chạy tới tầng ' + elevTarget + '…' : cabinAt(walk.f) ? 'Trong thang máy · bấm 2 hoặc 3 để chọn tầng' : 'Đang chờ thang máy tới…'; walkHint.hidden = false; }
+      else if (walk.f === 0 && nearE) { walkHint.textContent = 'Thang máy chỉ chạy giữa tầng 2 và 3 · lên tầng 2 bằng cầu thang'; walkHint.hidden = false; }
       else if (c) { const [a, b] = c.tipFn(); walkHint.textContent = a + ' · ' + b; walkHint.hidden = false; } else walkHint.hidden = true;
     }
   }
@@ -2028,7 +2042,7 @@ function buildModel(){
     // Mạch thật: cabin đi theo tầng do mạch thang máy báo về (current_floor), web không tự cho cabin chạy
     if (backend === Api && !walk.on) {
       const cur = Number(get(t, 'elevator/current_floor')), want = Number(get(t, 'elevator/target_floor'));
-      if (cur >= 1 && cur <= 3) elevTarget = cur;
+      if (cur === 2 || cur === 3) elevTarget = cur;
       document.querySelectorAll('[data-elev]').forEach(x => x.setAttribute('aria-pressed', Number(x.dataset.elev) === (want || cur)));
     }
     const snap = { l: {}, d1: get(t, D.door1.path) === true, d3: get(t, D.door3.path) === true, g: get(t, D.garage.path), trig: get(t, D.alarm.trig) === true };
@@ -2092,7 +2106,7 @@ function buildModel(){
     if (puffMat.opacity > .01) puffs.forEach(p => { p.position.y += p.userData.v * dt; if (p.position.y > y2 + 1.35) p.position.y = y2 + .05; });
     const ey = (elevTarget - 1) * (FH + SL) + .6;
     const moving = Math.abs(cabin.position.y - ey) > .01;
-    const at = Math.min(3, Math.max(1, Math.round((cabin.position.y - .6) / (FH + SL)) + 1));
+    const at = Math.min(3, Math.max(2, Math.round((cabin.position.y - .6) / (FH + SL)) + 1));
     if (moving ? (!shaftLive || shaftLive.at !== at || shaftLive.tgt !== elevTarget) : shaftLive && Number(get(tree, 'elevator/current_floor')) === elevFloor) {
       shaftLive = moving ? { at: at, tgt: elevTarget } : null; updateShaft();
     }
